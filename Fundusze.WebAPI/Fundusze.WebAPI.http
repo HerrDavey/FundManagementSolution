@@ -1,0 +1,6 @@
+@Fundusze.WebAPI_HostAddress = http://localhost:5049
+
+GET {{Fundusze.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
