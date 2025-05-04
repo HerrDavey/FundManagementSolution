@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Fundusze.WebAPI.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class InvestmentPortfolioController: ControllerBase
     {
         private readonly IInvestmentPortfolioRepository _repository;

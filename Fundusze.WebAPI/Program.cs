@@ -19,6 +19,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IFundRepository, FundRepository>();
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<IInvestmentPortfolioRepository, InvestmentPortfolioRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 
 
