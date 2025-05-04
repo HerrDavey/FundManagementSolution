@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Fundusze.Domain;
 using Fundusze.Domain.Interfaces;
-
+using Fundusze.Application.DTOs;
+using Fundusze.Application.Mappers;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -17,35 +18,43 @@ namespace Fundusze.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetAll()
+        public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAll()
         {
-            return Ok(await _repository.GetAllAsync());
+            var transactions = await _repository.GetAllAsync();
+            return Ok(transactions.Select(TransactionMapper.ToDto));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Transaction>> Get(int id)
+        public async Task<ActionResult<TransactionDto>> Get(int id)
         {
             var transaction = await _repository.GetByIdAsync(id);
             if (transaction == null) return NotFound();
 
-            return Ok(transaction);
+            return Ok(TransactionMapper.ToDto(transaction));
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateTransaction(Transaction transaction)
+        public async Task<ActionResult> CreateTransaction([FromBody] TransactionDto dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var transaction = TransactionMapper.FromDto(dto);
             await _repository.AddAsync(transaction);
-            return CreatedAtAction(nameof(Get), new { id = transaction.Id }, transaction);
+            
+            return CreatedAtAction(nameof(Get), new { id = transaction.Id }, TransactionMapper.ToDto(transaction));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTransaction(int id, Transaction updated)
+        public async Task<ActionResult> UpdateTransaction(int id, [FromBody] TransactionDto dto)
         {
-            if (id != updated.Id) return BadRequest();
-
+            if (id != dto.Id) return BadRequest();
+            if(!ModelState.IsValid) return BadRequest(ModelState);
             if(!await _repository.ExistsAsync(id)) return NotFound();
-            
-            await _repository.UpdateAsync(updated);
+
+
+            var transaction = TransactionMapper.FromDto(dto);
+            await _repository.UpdateAsync(transaction);
+
             return NoContent();
         }
 

@@ -18,10 +18,10 @@ namespace Fundusze.Domain
         public int Id { get; set; }
 
         public int PorfolioId { get; set; }
-        public InvestmentPortfolio Portfolio { get; set; }
+        public InvestmentPortfolio? Portfolio { get; set; }
 
         public int AssetId { get; set; }
-        public Asset Asset { get; set; }
+        public Asset? Asset { get; set; }
 
         public DateTime TransactionDate { get; set; }
         public int Quantity { get; set; }
