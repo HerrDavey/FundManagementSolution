@@ -37,8 +37,27 @@ namespace Fundusze.WebAPI.Controllers
             await _repository.AddAsync(asset);
             return CreatedAtAction(nameof(GetAsset), new {id = asset.Id}, asset);
         }
-        
-        // Do skończenia od tego miejsca!
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateAsset (int id, Asset updated)
+        {
+            if (id != updated.Id) return BadRequest();
+
+            if (!await _repository.ExistsAsync(id)) return NotFound();
+
+            await _repository.UpdateAsync(updated);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteAsset(int id)
+        {
+            var asset = await _repository.GetByIdAsync(id);
+            if (asset == null) return NotFound();
+
+            await _repository.DeleteAsync(asset);
+            return NoContent();
+        }
 
     }
 }

@@ -18,6 +18,7 @@ builder.Services.AddSwaggerGen();
 // Rejestracja Repozytoriów
 builder.Services.AddScoped<IFundRepository, FundRepository>();
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
+builder.Services.AddScoped<IInvestmentPortfolioRepository, InvestmentPortfolioRepository>();
 
 
 
