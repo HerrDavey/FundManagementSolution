@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Fundusze.Domain.Entities;
 using Fundusze.Domain.Interfaces;
+using Fundusze.Application.DTOs;
+using Fundusze.Application.Mappers;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Fundusze.WebAPI.Controllers
@@ -17,35 +19,43 @@ namespace Fundusze.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Fund>>> GetFunds()
+        public async Task<ActionResult<IEnumerable<FundDto>>> GetFunds()
         {
-            return Ok(await _repository.GetAllAsync());
+            var funds = await _repository.GetAllAsync();
+            return Ok(funds.Select(FundMapper.ToDto));
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Fund>> GetFund(int id)
+        public async Task<ActionResult<FundDto>> GetFund(int id)
         {
             var fund = await _repository.GetByIdAsync(id);
             if (fund == null) return NotFound();
-            return Ok(fund);
+            return Ok(FundMapper.ToDto(fund));
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateFund(Fund fund)
+        public async Task<ActionResult> CreateFund([FromBody] FundDto dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var fund = FundMapper.FromDto(dto);
             await _repository.AddAsync(fund);
-            return CreatedAtAction(nameof(GetFund), new {id = fund.Id}, fund);
+
+            return CreatedAtAction(nameof(GetFund), new { id = fund.Id }, FundMapper.ToDto(fund));
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateFund(int id, Fund updated)
-        {
-            if (id != updated.Id) return BadRequest();
 
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateFund(int id, [FromBody] FundDto dto)
+        {
+            if (id != dto.Id) return BadRequest();
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             if (!await _repository.ExistsAsync(id)) return NotFound();
 
-            await _repository.UpdateAsync(updated);
+            var fund = FundMapper.FromDto(dto);
+            await _repository.UpdateAsync(fund);
+
             return NoContent();
         }
 
