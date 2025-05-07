@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Fundusze.Application\Fundusze.Application.csproj" />
     <ProjectReference Include="..\Fundusze.SharedKernel\Fundusze.SharedKernel.csproj" />
   </ItemGroup>

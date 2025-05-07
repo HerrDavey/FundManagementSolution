@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.Application", "Fundusze.Application\Fundusze.Application.csproj", "{F7EE4BF4-1D3B-D1B9-6180-D988ABCB55E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.BlazorServer", "Fundusze.BlazorServer\Fundusze.BlazorServer.csproj", "{D3EEDE66-4775-2896-B612-50487F1193E4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.BlazorWasm", "Fundusze.BlazorWasm\Fundusze.BlazorWasm.csproj", "{C28E1564-E9EB-D6BD-EE8A-07E5FF3D4BF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.Domain", "Fundusze.Domain\Fundusze.Domain.csproj", "{93AA1F20-F47F-D6FD-04CF-CC05F8CD52A9}"
@@ -16,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.SharedKernel", "Fundusze.SharedKernel\Fundusze.SharedKernel.csproj", "{03151E89-0C38-9183-F138-A4985E924662}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.WebAPI", "Fundusze.WebAPI\Fundusze.WebAPI.csproj", "{86F46630-B00B-BA63-B868-EB08B2AE3C2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fundusze.UI_Blazor", "Fundusze.UI_Blazor\Fundusze.UI_Blazor.csproj", "{6A648599-F66C-45B8-8EC5-DFDCD6D58BAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,10 +27,6 @@ Global
 		{F7EE4BF4-1D3B-D1B9-6180-D988ABCB55E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7EE4BF4-1D3B-D1B9-6180-D988ABCB55E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7EE4BF4-1D3B-D1B9-6180-D988ABCB55E8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3EEDE66-4775-2896-B612-50487F1193E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3EEDE66-4775-2896-B612-50487F1193E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3EEDE66-4775-2896-B612-50487F1193E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3EEDE66-4775-2896-B612-50487F1193E4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C28E1564-E9EB-D6BD-EE8A-07E5FF3D4BF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C28E1564-E9EB-D6BD-EE8A-07E5FF3D4BF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C28E1564-E9EB-D6BD-EE8A-07E5FF3D4BF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,6 +47,10 @@ Global
 		{86F46630-B00B-BA63-B868-EB08B2AE3C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86F46630-B00B-BA63-B868-EB08B2AE3C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86F46630-B00B-BA63-B868-EB08B2AE3C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A648599-F66C-45B8-8EC5-DFDCD6D58BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A648599-F66C-45B8-8EC5-DFDCD6D58BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A648599-F66C-45B8-8EC5-DFDCD6D58BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A648599-F66C-45B8-8EC5-DFDCD6D58BAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

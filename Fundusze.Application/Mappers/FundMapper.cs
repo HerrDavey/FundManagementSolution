@@ -31,7 +31,7 @@ namespace Fundusze.Application.Mappers
                 Name = dto.Name,
                 Type = dto.Type,
                 Managed = dto.Managed,
-                CreatedDate = dto.CreatedDate
+                CreatedDate = dto.CreatedDate ?? DateTime.Now,
             };
         }
     }

@@ -24,6 +24,6 @@ namespace Fundusze.Application.DTOs
         public string Managed { get; set; } = string.Empty;
 
         [Required]
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; } 
     }
 }

@@ -1,0 +1,51 @@
+﻿@page "/funds/add"
+@inject HttpClient Http
+@using MudBlazor
+@using Fundusze.Application.DTOs
+
+<PageTitle>Dodaj fundusz</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudText Typo="Typo.h5" Class="mb-4">Nowy fundusz</MudText>
+
+    <MudForm @ref="_form" Model="_fund" Validated="OnValidSubmit">
+        <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" Required="true" />
+        <MudTextField @bind-Value="_fund.Type" Label="Typ" Required="true" />
+        <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" Required="true" />
+        <MudDatePicker @bind-Date="_fund.CreatedDate" Label="Data utworzenia" Required="true" />
+
+        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Type="Submit" Class="mt-3">
+            Zapisz
+        </MudButton>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private MudForm _form = default!;
+    private FundDto _fund = new();
+
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/fund", _fund);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Fundusz został zapisany!", Severity.Success);
+                _fund = new(); // Reset formularza
+                await _form.ResetAsync();
+            }
+            else
+            {
+                Snackbar.Add("Wystąpił błąd podczas zapisu.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Błąd: {ex.Message}", Severity.Error);
+        }
+    }
+
+    [Inject] public ISnackbar Snackbar { get; set; } = default!;
+}

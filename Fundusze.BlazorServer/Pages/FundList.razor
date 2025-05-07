@@ -1,0 +1,37 @@
+﻿@page "/funds"
+@inject HttpClient Http
+
+<h3>Lista Funduszy</h3>
+
+<MudTable Items="_funds" Hover="true" Dense="true">
+    <HeaderContent>
+        <MudTh>Nazwa</MudTh>
+        <MudTh>Typ</MudTh>
+        <MudTh>Zarządzający</MudTh>
+        <MudTh>Data utworzenia</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+        <MudTd DataLabel="Typ">@context.Type</MudTd>
+        <MudTd DataLabel="Zarządzający">@context.Managed</MudTd>
+        <MudTd DataLabel="Data utworzenia">@context.CreatedDate.ToShortDateString()</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private List<FundDto> _funds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _funds = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+    }
+
+    public class FundDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Managed { get; set; } = string.Empty;
+        public DateTime CreatedDate { get; set; }
+    }
+}

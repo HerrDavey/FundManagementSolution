@@ -1,8 +1,21 @@
 using Fundusze.BlazorServer.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using MudBlazor.Services;
+using System.Net.Sockets;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Dodanie Referencji do projektu WebAPI 
+builder.Services.AddHttpClient("FunduszeAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7033/");
+});
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("FunduszeAPI"));
+
+// Dodanie MudBlazor
+builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorPages();

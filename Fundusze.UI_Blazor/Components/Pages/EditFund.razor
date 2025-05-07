@@ -1,0 +1,59 @@
+﻿@page "/funds/edit/{Id:int}"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@using Fundusze.Application.DTOs
+@using MudBlazor
+
+<PageTitle>Edytuj fundusz</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudText Typo="Typo.h5" Class="mb-4">Edytuj fundusz</MudText>
+
+    @if (_fund is not null)
+    {
+        <MudForm @ref="_form" Model="_fund" Validated="OnValidSubmit">
+            <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" Required="true" />
+            <MudTextField @bind-Value="_fund.Type" Label="Typ" Required="true" />
+            <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" Required="true" />
+            <MudDatePicker @bind-Date="_fund.CreatedDate" Label="Data utworzenia" Required="true" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="Submit" Class="mt-3">
+                Zapisz zmiany
+            </MudButton>
+
+        </MudForm>
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate />
+    }
+
+    <MudSnackbarProvider />
+</MudPaper>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MudForm _form = default!;
+    private FundDto? _fund;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fund = await Http.GetFromJsonAsync<FundDto>($"api/fund/{Id}");
+    }
+
+    private async Task OnValidSubmit()
+    {
+        var response = await Http.PutAsJsonAsync($"api/fund/{Id}", _fund);
+        if (response.IsSuccessStatusCode)
+        {
+            Nav.NavigateTo("/funds");
+        }
+        else
+        {
+            Snackbar.Add("Błąd podczas zapisu zmian.", Severity.Error);
+        }
+    }
+
+    [Inject] public ISnackbar Snackbar { get; set; } = default!;
+}

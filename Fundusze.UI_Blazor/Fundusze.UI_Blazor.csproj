@@ -10,4 +10,8 @@
     <PackageReference Include="MudBlazor" Version="8.6.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Fundusze.Application\Fundusze.Application.csproj" />
+  </ItemGroup>
+
 </Project>

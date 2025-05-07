@@ -1,0 +1,28 @@
+﻿@page "/funds"
+
+
+<PageTitle>Fundusze</PageTitle>
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5">Lista funduszy</MudText>
+    <MudTable Items="@funds">
+        <HeaderContent>
+            <MudTh>Nazwa</MudTh>
+            <MudTh>Typ</MudTh>
+            <MudTh>Zarządzający</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="fund">
+            <MudTd DataLabel="Nazwa">@fund.Name</MudTd>
+            <MudTd DataLabel="Typ">@fund.Type</MudTd>
+            <MudTd DataLabel="Zarządzający">@fund.Managed</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<FundDto> funds = new()
+    {
+        new FundDto { Name = "PZU Akcji", Type = "Akcyjny", Managed = "PZU TFI" },
+        new FundDto { Name = "NN Obligacji", Type = "Obligacyjny", Managed = "NN TFI" },
+    };
+}
