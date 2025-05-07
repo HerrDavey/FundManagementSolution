@@ -1,10 +1,15 @@
 ﻿@page "/funds"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
 
 
 <PageTitle>Fundusze</PageTitle>
 
 <MudPaper Class="p-4">
     <MudText Typo="Typo.h5">Lista funduszy</MudText>
+
     <MudTable Items="@funds">
         <HeaderContent>
             <MudTh>Nazwa</MudTh>
@@ -15,6 +20,12 @@
             <MudTd DataLabel="Nazwa">@fund.Name</MudTd>
             <MudTd DataLabel="Typ">@fund.Type</MudTd>
             <MudTd DataLabel="Zarządzający">@fund.Managed</MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                           OnClick="@(() => EditFund(fund.Id))">
+                    Edytuj
+                </MudButton>
+            </MudTd>
         </RowTemplate>
     </MudTable>
 </MudPaper>
@@ -25,4 +36,16 @@
         new FundDto { Name = "PZU Akcji", Type = "Akcyjny", Managed = "PZU TFI" },
         new FundDto { Name = "NN Obligacji", Type = "Obligacyjny", Managed = "NN TFI" },
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+        if (result is not null)
+            funds = result;
+    }
+
+    private void EditFund(int id)
+    {
+        NavigationManager.NavigateTo($"/funds/edit/{id}");
+    }
 }
