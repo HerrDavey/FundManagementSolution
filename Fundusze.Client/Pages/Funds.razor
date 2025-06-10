@@ -1,15 +1,14 @@
 ﻿@page "/funds"
 
 @inject HttpClient Http
-@inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 <PageTitle>Fundusze</PageTitle>
 
 <MudPaper Class="p-4">
     <div class="d-flex justify-space-between align-center mb-4">
-        <MudText Typo="Typo.h5">Lista funduszy</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/funds/add"))">Dodaj nowy</MudButton>
+        <MudText Typo="Typo.h5">Lista Dostępnych Funduszy</MudText>
     </div>
 
     @if (_funds is null)
@@ -23,24 +22,11 @@
                 <MudTh>Nazwa</MudTh>
                 <MudTh>Typ</MudTh>
                 <MudTh>Zarządzający</MudTh>
-                <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Nazwa">@context.Name</MudTd>
                 <MudTd DataLabel="Typ">@context.Type</MudTd>
                 <MudTd DataLabel="Zarządzający">@context.Managed</MudTd>
-                <MudTd>
-                    @if (_fundPendingDelete?.Id == context.Id)
-                    {
-                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteFund(context.Id))">Potwierdź</MudButton>
-                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => _fundPendingDelete = null)">Anuluj</MudButton>
-                    }
-                    else
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditFund(context.Id))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => _fundPendingDelete = context)" />
-                    }
-                </MudTd>
             </RowTemplate>
         </MudTable>
     }
@@ -48,7 +34,6 @@
 
 @code {
     private List<FundDto>? _funds;
-    private FundDto? _fundPendingDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,30 +45,5 @@
         {
             Snackbar.Add($"Błąd ładowania danych: {ex.Message}", Severity.Error);
         }
-    }
-
-    private void EditFund(int id)
-    {
-        NavigationManager.NavigateTo($"/funds/edit/{id}");
-    }
-
-    private async Task DeleteFund(int id)
-    {
-        var response = await Http.DeleteAsync($"api/fund/{id}");
-        if (response.IsSuccessStatusCode)
-        {
-            var fundToRemove = _funds?.FirstOrDefault(f => f.Id == id);
-            if (fundToRemove != null)
-            {
-                _funds.Remove(fundToRemove);
-            }
-            Snackbar.Add("Fundusz został usunięty.", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add("Wystąpił błąd podczas usuwania funduszu.", Severity.Error);
-        }
-        _fundPendingDelete = null;
-        StateHasChanged();
     }
 }
