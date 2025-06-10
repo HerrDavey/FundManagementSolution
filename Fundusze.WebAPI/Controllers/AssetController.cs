@@ -1,6 +1,4 @@
-﻿using Fundusze.Domain;
-using Fundusze.Domain.Interfaces;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Fundusze.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Fundusze.Application.DTOs;
 using Fundusze.Application.Mappers;
@@ -9,27 +7,27 @@ namespace Fundusze.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AssetController: ControllerBase
+    public class AssetController : ControllerBase
     {
-        private readonly IAssetRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AssetController(IAssetRepository repository)
+        public AssetController(IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AssetDto>>> GetAssets()
         {
-            var assets = await _repository.GetAllAsync();
+            var assets = await _unitOfWork.Assets.GetAllAsync();
             return Ok(assets.Select(AssetMapper.ToDto));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<AssetDto>> GetAsset(int id)
         {
-            var asset = await _repository.GetByIdAsync(id);
-            if(asset == null)  return NotFound();
+            var asset = await _unitOfWork.Assets.GetByIdAsync(id);
+            if (asset == null) return NotFound();
 
             return Ok(AssetMapper.ToDto(asset));
         }
@@ -37,22 +35,24 @@ namespace Fundusze.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateAsset([FromBody] AssetDto dto)
         {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var asset = AssetMapper.FromDto(dto);
-            await _repository.AddAsync(asset);
-            return CreatedAtAction(nameof(GetAsset), new {id = asset.Id}, AssetMapper.ToDto(asset));
+            await _unitOfWork.Assets.AddAsync(asset);
+            await _unitOfWork.CompleteAsync();
+
+            return CreatedAtAction(nameof(GetAsset), new { id = asset.Id }, AssetMapper.ToDto(asset));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAsset (int id, [FromBody] AssetDto dto)
+        public async Task<ActionResult> UpdateAsset(int id, [FromBody] AssetDto dto)
         {
-            if (id != dto.Id) return BadRequest();
+            if (id != dto.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (!await _repository.ExistsAsync(id)) return NotFound();
 
             var asset = AssetMapper.FromDto(dto);
-            await _repository.UpdateAsync(asset);
+            await _unitOfWork.Assets.UpdateAsync(asset);
+            await _unitOfWork.CompleteAsync();
 
             return NoContent();
         }
@@ -60,12 +60,13 @@ namespace Fundusze.WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAsset(int id)
         {
-            var asset = await _repository.GetByIdAsync(id);
+            var asset = await _unitOfWork.Assets.GetByIdAsync(id);
             if (asset == null) return NotFound();
 
-            await _repository.DeleteAsync(asset);
+            await _unitOfWork.Assets.DeleteAsync(asset);
+            await _unitOfWork.CompleteAsync();
+
             return NoContent();
         }
-
     }
 }

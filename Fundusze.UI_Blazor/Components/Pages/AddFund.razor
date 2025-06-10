@@ -1,31 +1,56 @@
 ﻿@page "/funds/add"
 @inject HttpClient Http
-@using MudBlazor
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+
+
 @using Fundusze.Application.DTOs
+@using MudBlazor
 
 <PageTitle>Dodaj fundusz</PageTitle>
 
 <MudPaper Class="p-4 mx-auto" MaxWidth="500px">
-    <MudText Typo="Typo.h5" Class="mb-4">Nowy fundusz</MudText>
+    <MudForm @ref="_form" Model="_fund" @bind-IsValid="@_success">
+        <MudText Typo="Typo.h3" Class="mb-4">Nowy fundusz</MudText>
 
-    <MudForm @ref="_form" Model="_fund" Validated="OnValidSubmit">
-        <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" Required="true" />
-        <MudTextField @bind-Value="_fund.Type" Label="Typ" Required="true" />
-        <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" Required="true" />
-        <MudDatePicker @bind-Date="_fund.CreatedDate" Label="Data utworzenia" Required="true" />
+        <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" For="@(() => _fund.Name)" Required="true" />
+        <MudTextField @bind-Value="_fund.Type" Label="Typ" For="@(() => _fund.Type)" Required="true" />
+        <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" For="@(() => _fund.Managed)" Required="true" />
+        <MudDatePicker @bind-Date="_fund.CreatedDate" Label="Data utworzenia" For="@(() => _fund.CreatedDate)" Required="true" />
 
-        <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Type="Submit" Class="mt-3">
-            Zapisz
-        </MudButton>
+        <div class="d-flex align-center justify-space-between mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
+                Zapisz
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">
+                Powrót do listy
+            </MudButton>
+        </div>
     </MudForm>
 </MudPaper>
 
 @code {
     private MudForm _form = default!;
-    private FundDto _fund = new();
+    private bool _success;
 
-    private async Task OnValidSubmit()
+    private FundDto _fund = new()
     {
+        CreatedDate = DateTime.Now // Ustawienie domyślnej daty
+    };
+
+    /// <summary>
+    /// Wysyła dane formularza na serwer.
+    /// </summary>
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (!_success)
+        {
+            Snackbar.Add("Proszę poprawnie wypełnić formularz.", Severity.Warning);
+            return;
+        }
+
         try
         {
             var response = await Http.PostAsJsonAsync("api/fund", _fund);
@@ -33,12 +58,12 @@
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Fundusz został zapisany!", Severity.Success);
-                _fund = new(); // Reset formularza
-                await _form.ResetAsync();
+                BackToList(); // Przekieruj po sukcesie
             }
             else
             {
-                Snackbar.Add("Wystąpił błąd podczas zapisu.", Severity.Error);
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Wystąpił błąd podczas zapisu: {error}", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -47,5 +72,8 @@
         }
     }
 
-    [Inject] public ISnackbar Snackbar { get; set; } = default!;
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/funds"); // Przekierowanie na listę funduszy
+    }
 }

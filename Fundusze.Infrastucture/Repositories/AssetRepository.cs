@@ -1,5 +1,5 @@
-﻿using Fundusze.Domain.Interfaces;
-using Fundusze.Domain;
+﻿using Fundusze.Domain;
+using Fundusze.Domain.Interfaces;
 using Fundusze.Infrastucture.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -22,13 +22,12 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task AddAsync(Asset asset)
         {
             await _context.Assets.AddAsync(asset);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Asset asset)
         {
             _context.Assets.Remove(asset);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask; // Utrzymujemy asynchroniczność interfejsu
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -49,7 +48,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task UpdateAsync(Asset asset)
         {
             _context.Assets.Update(asset);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask; // Utrzymujemy asynchroniczność interfejsu
         }
     }
 }

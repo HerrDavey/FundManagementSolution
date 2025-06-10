@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Fundusze.Domain.Entities;
+using Fundusze.Domain.Interfaces;
+using Fundusze.Infrastucture.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Fundusze.Domain.Entities;
-using Fundusze.Domain.Interfaces;
-using Fundusze.Infrastucture.Data;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Fundusze.Infrastucture.Repositories
@@ -23,13 +23,12 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task AddAsync(Fund fund)
         {
             await _context.Funds.AddAsync(fund);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Fund fund)
         {
             _context.Funds.Remove(fund);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask;
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -50,7 +49,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task UpdateAsync(Fund fund)
         {
             _context.Funds.Update(fund);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask;
         }
     }
 }

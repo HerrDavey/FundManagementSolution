@@ -6,26 +6,28 @@ namespace Fundusze.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class InvestmentPortfolioController: ControllerBase
+    public class InvestmentPortfolioController : ControllerBase
     {
-        private readonly IInvestmentPortfolioRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public InvestmentPortfolioController(IInvestmentPortfolioRepository repository)
+        public InvestmentPortfolioController(IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<InvestmentPortfolio>>> GetAll()
         {
-            return Ok(await _repository.GetAllAsync());
+            // Na razie zostawiamy zwracanie encji, zajmiemy się tym w następnym kroku
+            return Ok(await _unitOfWork.Portfolios.GetAllAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<InvestmentPortfolio>> Get(int id)
         {
-            var portfolio = await _repository.GetByIdAsync(id);
-            if(portfolio == null) return NotFound();
+            // Na razie zostawiamy zwracanie encji, zajmiemy się tym w następnym kroku
+            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(id);
+            if (portfolio == null) return NotFound();
 
             return Ok(portfolio);
         }
@@ -33,30 +35,35 @@ namespace Fundusze.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateInvestmentPortfolio(InvestmentPortfolio portfolio)
         {
-            await _repository.AddAsync(portfolio);
+            await _unitOfWork.Portfolios.AddAsync(portfolio);
+            await _unitOfWork.CompleteAsync();
+
             return CreatedAtAction(nameof(Get), new { id = portfolio.Id }, portfolio);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateInvestmentPortfolio(int id, InvestmentPortfolio updated)
         {
-            if (id != updated.Id) return BadRequest();
+            if (id != updated.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
 
-            if (!await _repository.ExistsAsync(id)) return NotFound();
+            if (!await _unitOfWork.Portfolios.ExistsAsync(id)) return NotFound();
 
-            await _repository.UpdateAsync(updated);
+            await _unitOfWork.Portfolios.UpdateAsync(updated);
+            await _unitOfWork.CompleteAsync();
+
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteInvestmentPortfolio(int id)
         {
-            var portfolio = await _repository.GetByIdAsync(id);
+            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(id);
             if (portfolio == null) return NotFound();
 
-            await _repository.DeleteAsync(portfolio);
+            await _unitOfWork.Portfolios.DeleteAsync(portfolio);
+            await _unitOfWork.CompleteAsync();
+
             return NoContent();
         }
-
     }
 }

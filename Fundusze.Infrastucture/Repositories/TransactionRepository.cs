@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Fundusze.Infrastucture.Repositories
 {
-    public class TransactionRepository: ITransactionRepository
+    public class TransactionRepository : ITransactionRepository
     {
         private readonly FundsDbContext _context;
 
@@ -22,13 +22,12 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task AddAsync(Transaction transaction)
         {
             await _context.Transactions.AddAsync(transaction);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Transaction transaction)
         {
             _context.Transactions.Remove(transaction);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask;
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -55,7 +54,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task UpdateAsync(Transaction transaction)
         {
             _context.Transactions.Update(transaction);
-            await _context.SaveChangesAsync();
+            await Task.CompletedTask;
         }
     }
 }

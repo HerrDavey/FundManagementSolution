@@ -1,27 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Fundusze.Domain.Entities;
 using Fundusze.Domain.Interfaces;
 using Fundusze.Application.DTOs;
 using Fundusze.Application.Mappers;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Fundusze.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FundController: ControllerBase
+    public class FundController : ControllerBase
     {
-        private readonly IFundRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public FundController(IFundRepository repository)
+        public FundController(IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FundDto>>> GetFunds()
         {
-            var funds = await _repository.GetAllAsync();
+            var funds = await _unitOfWork.Funds.GetAllAsync();
             return Ok(funds.Select(FundMapper.ToDto));
         }
 
@@ -29,7 +27,7 @@ namespace Fundusze.WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<FundDto>> GetFund(int id)
         {
-            var fund = await _repository.GetByIdAsync(id);
+            var fund = await _unitOfWork.Funds.GetByIdAsync(id);
             if (fund == null) return NotFound();
             return Ok(FundMapper.ToDto(fund));
         }
@@ -40,7 +38,8 @@ namespace Fundusze.WebAPI.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var fund = FundMapper.FromDto(dto);
-            await _repository.AddAsync(fund);
+            await _unitOfWork.Funds.AddAsync(fund);
+            await _unitOfWork.CompleteAsync();
 
             return CreatedAtAction(nameof(GetFund), new { id = fund.Id }, FundMapper.ToDto(fund));
         }
@@ -49,12 +48,12 @@ namespace Fundusze.WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateFund(int id, [FromBody] FundDto dto)
         {
-            if (id != dto.Id) return BadRequest();
+            if (id != dto.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (!await _repository.ExistsAsync(id)) return NotFound();
 
             var fund = FundMapper.FromDto(dto);
-            await _repository.UpdateAsync(fund);
+            await _unitOfWork.Funds.UpdateAsync(fund);
+            await _unitOfWork.CompleteAsync();
 
             return NoContent();
         }
@@ -62,12 +61,13 @@ namespace Fundusze.WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFund(int id)
         {
-            var fund = await _repository.GetByIdAsync(id);
+            var fund = await _unitOfWork.Funds.GetByIdAsync(id);
             if (fund == null) return NotFound();
 
-            await _repository.DeleteAsync(fund);
+            await _unitOfWork.Funds.DeleteAsync(fund);
+            await _unitOfWork.CompleteAsync();
+
             return NoContent();
         }
-
     }
 }
