@@ -1,45 +1,69 @@
 ﻿@page "/funds"
+@rendermode InteractiveServer
+
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
-
 
 <PageTitle>Fundusze</PageTitle>
 
 <MudPaper Class="p-4">
-    <MudText Typo="Typo.h5">Lista funduszy</MudText>
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista funduszy</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/funds/add"))">Dodaj nowy</MudButton>
+    </div>
 
-    <MudTable Items="@funds">
-        <HeaderContent>
-            <MudTh>Nazwa</MudTh>
-            <MudTh>Typ</MudTh>
-            <MudTh>Zarządzający</MudTh>
-        </HeaderContent>
-        <RowTemplate Context="fund">
-            <MudTd DataLabel="Nazwa">@fund.Name</MudTd>
-            <MudTd DataLabel="Typ">@fund.Type</MudTd>
-            <MudTd DataLabel="Zarządzający">@fund.Managed</MudTd>
-            <MudTd>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
-                           OnClick="@(() => EditFund(fund.Id))">
-                    Edytuj
-                </MudButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_funds != null)
+    {
+        <MudTable Items="@_funds" Hover="true">
+            <HeaderContent>
+                <MudTh>Nazwa</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Zarządzający</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                <MudTd DataLabel="Typ">@context.Type</MudTd>
+                <MudTd DataLabel="Zarządzający">@context.Managed</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditFund(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText Color="Color.Error">Nie udało się załadować danych.</MudText>
+    }
 </MudPaper>
 
 @code {
-    private List<FundDto> funds = new()
-    {
-        new FundDto { Name = "PZU Akcji", Type = "Akcyjny", Managed = "PZU TFI" },
-        new FundDto { Name = "NN Obligacji", Type = "Obligacyjny", Managed = "NN TFI" },
-    };
+    private List<FundDto>? _funds;
+    private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
-        if (result is not null)
-            funds = result;
+        try
+        {
+            var result = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+            if (result is not null)
+            {
+                _funds = result;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading funds: {ex.Message}");
+            _funds = null; // Ustawiamy na null w razie błędu
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private void EditFund(int id)

@@ -1,19 +1,22 @@
 using Fundusze.UI_Blazor.Components;
 using MudBlazor.Services;
 
-
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("https://localhost:7033/")
-});
-
-builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents(options => options.DetailedErrors = true);
+    .AddInteractiveServerComponents(); // W³¹czamy tryb interaktywny dla serwera
+
+// Rejestracja MudBlazor
+builder.Services.AddMudServices();
+
+// Rejestracja HttpClient, który bêdzie ³¹czy³ siê z naszym API
+builder.Services.AddScoped(sp =>
+{
+    var apiUrl = builder.Configuration["ApiBaseUrl"]
+                 ?? throw new InvalidOperationException("ApiBaseUrl is not configured.");
+    return new HttpClient { BaseAddress = new Uri(apiUrl) };
+});
 
 var app = builder.Build();
 
@@ -21,12 +24,10 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 
