@@ -20,7 +20,9 @@
             <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" For="@(() => _fund.Name)" Required="true" />
             <MudTextField @bind-Value="_fund.Type" Label="Typ" For="@(() => _fund.Type)" Required="true" />
             <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" For="@(() => _fund.Managed)" Required="true" />
-            <MudTextField @bind-Value="_fund.CreatedDate" InputType="InputType.Date" Label="Data utworzenia" For="@(() => _fund.CreatedDate)" Required="true" />
+
+            @* POPRAWKA: Wiązanie daty jako string *@
+            <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data utworzenia" Required="true" />
 
             <div class="d-flex align-center justify-space-between mt-4">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
@@ -40,12 +42,17 @@
     private MudForm _form = default!;
     private bool _success;
     private FundDto? _fund;
+    private string? _dateString; // Format wymagany przez input type="date"
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _fund = await Http.GetFromJsonAsync<FundDto>($"api/fund/{Id}");
+            if (_fund?.CreatedDate is not null)
+            {
+                _dateString = _fund.CreatedDate.Value.ToString("yyyy-MM-dd");
+            }
         }
         catch (Exception ex)
         {
@@ -56,7 +63,14 @@
     private async Task SubmitForm()
     {
         await _form.Validate();
+        if (string.IsNullOrEmpty(_dateString)) _success = false;
+
         if (!_success) return;
+
+        if (_fund is not null)
+        {
+            _fund.CreatedDate = DateTime.Parse(_dateString); // Konwersja string -> DateTime
+        }
 
         var response = await Http.PutAsJsonAsync($"api/fund/{Id}", _fund);
         if (response.IsSuccessStatusCode)

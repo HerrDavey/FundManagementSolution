@@ -1,0 +1,106 @@
+﻿@page "/portfolios/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edytuj Portfel</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudText Typo="Typo.h5" Class="mb-4">Edytuj Portfel Inwestycyjny</MudText>
+
+    @if (_portfolio is null || _allFunds is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudForm @ref="_form" Model="_portfolio" @bind-IsValid="_success">
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Wybierz fundusz</label>
+                <select @bind="_portfolio.FundId" class="form-select" required>
+                    @foreach (var fund in _allFunds)
+                    {
+                        <option value="@fund.Id">@fund.Name</option>
+                    }
+                </select>
+            </div>
+
+            <MudNumericField T="decimal" @bind-Value="_portfolio.NAV" Label="Wartość Aktywów Netto (NAV)" For="@(() => _portfolio.NAV)" Required="true" Min="0.00m" />
+
+            @* POPRAWKA: Wiązanie daty jako string *@
+            <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data utworzenia" Required="true" />
+
+            <div class="d-flex align-center justify-space-between mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
+                    Zapisz zmiany
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@(() => NavigationManager.NavigateTo("/portfolios"))">
+                    Anuluj
+                </MudButton>
+            </div>
+        </MudForm>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MudForm _form = default!;
+    private bool _success;
+    private InvestmentPortfolioDto? _portfolio;
+    private List<FundDto>? _allFunds;
+    private string? _dateString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Task.WhenAll(
+                LoadPortfolioData(),
+                LoadFunds()
+            );
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Wystąpił krytyczny błąd podczas ładowania danych: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadPortfolioData()
+    {
+        _portfolio = await Http.GetFromJsonAsync<InvestmentPortfolioDto>($"api/investmentportfolio/{Id}");
+        if (_portfolio is not null)
+        {
+            _dateString = _portfolio.CreatedDate.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private async Task LoadFunds()
+    {
+        _allFunds = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+    }
+
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (_portfolio.FundId == 0) _success = false;
+        if (string.IsNullOrEmpty(_dateString)) _success = false;
+
+        if (!_success) return;
+
+        _portfolio.CreatedDate = DateTime.Parse(_dateString);
+
+        var response = await Http.PutAsJsonAsync($"api/investmentportfolio/{Id}", _portfolio);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Zmiany zostały zapisane.", Severity.Success);
+            NavigationManager.NavigateTo("/portfolios");
+        }
+        else
+        {
+            Snackbar.Add("Błąd podczas zapisu zmian.", Severity.Error);
+        }
+    }
+}
