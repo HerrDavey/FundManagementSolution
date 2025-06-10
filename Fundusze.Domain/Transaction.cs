@@ -17,7 +17,8 @@ namespace Fundusze.Domain
     {
         public int Id { get; set; }
 
-        public int PorfolioId { get; set; }
+        // POPRAWKA TUTAJ: PorfolioId -> PortfolioId
+        public int PortfolioId { get; set; }
         public InvestmentPortfolio? Portfolio { get; set; }
 
         public int AssetId { get; set; }

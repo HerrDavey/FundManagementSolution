@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Fundusze.Domain;
+﻿using Fundusze.Domain;
 using Fundusze.Application.DTOs;
 
 namespace Fundusze.Application.Mappers
@@ -15,7 +10,8 @@ namespace Fundusze.Application.Mappers
             return new TransactionDto
             {
                 Id = transaction.Id,
-                PortfolioId = transaction.PorfolioId,
+                // POPRAWKA TUTAJ
+                PortfolioId = transaction.PortfolioId,
                 AssetId = transaction.AssetId,
                 TransactionDate = transaction.TransactionDate,
                 Quantity = transaction.Quantity,
@@ -29,7 +25,8 @@ namespace Fundusze.Application.Mappers
             return new Transaction
             {
                 Id = dto.Id,
-                PorfolioId = dto.PortfolioId,
+                // POPRAWKA TUTAJ
+                PortfolioId = dto.PortfolioId,
                 AssetId = dto.AssetId,
                 TransactionDate = dto.TransactionDate,
                 Quantity = dto.Quantity,

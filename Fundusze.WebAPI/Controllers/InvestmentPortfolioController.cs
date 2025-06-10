@@ -1,6 +1,10 @@
 ﻿using Fundusze.Domain.Entities;
 using Fundusze.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Fundusze.Application.DTOs;
+using Fundusze.Application.Mappers;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -16,39 +20,44 @@ namespace Fundusze.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InvestmentPortfolio>>> GetAll()
+        public async Task<ActionResult<IEnumerable<InvestmentPortfolioDto>>> GetAll()
         {
-            // Na razie zostawiamy zwracanie encji, zajmiemy się tym w następnym kroku
-            return Ok(await _unitOfWork.Portfolios.GetAllAsync());
+            var portfolios = await _unitOfWork.Portfolios.GetAllAsync();
+            var portfoliosDto = portfolios.Select(InvestmentPortfolioMapper.ToDto);
+            return Ok(portfoliosDto);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<InvestmentPortfolio>> Get(int id)
+        public async Task<ActionResult<InvestmentPortfolioDto>> Get(int id)
         {
-            // Na razie zostawiamy zwracanie encji, zajmiemy się tym w następnym kroku
             var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(id);
             if (portfolio == null) return NotFound();
 
-            return Ok(portfolio);
+            return Ok(InvestmentPortfolioMapper.ToDto(portfolio));
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateInvestmentPortfolio(InvestmentPortfolio portfolio)
+        public async Task<ActionResult<InvestmentPortfolioDto>> CreateInvestmentPortfolio([FromBody] InvestmentPortfolioDto dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var portfolio = InvestmentPortfolioMapper.FromDto(dto);
             await _unitOfWork.Portfolios.AddAsync(portfolio);
             await _unitOfWork.CompleteAsync();
 
-            return CreatedAtAction(nameof(Get), new { id = portfolio.Id }, portfolio);
+            // Pobieramy nowo utworzony obiekt z bazy, aby załadować powiązane dane (np. Fund)
+            var createdPortfolio = await _unitOfWork.Portfolios.GetByIdAsync(portfolio.Id);
+            return CreatedAtAction(nameof(Get), new { id = portfolio.Id }, InvestmentPortfolioMapper.ToDto(createdPortfolio));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateInvestmentPortfolio(int id, InvestmentPortfolio updated)
+        public async Task<ActionResult> UpdateInvestmentPortfolio(int id, [FromBody] InvestmentPortfolioDto dto)
         {
-            if (id != updated.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
+            if (id != dto.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (!await _unitOfWork.Portfolios.ExistsAsync(id)) return NotFound();
-
-            await _unitOfWork.Portfolios.UpdateAsync(updated);
+            var portfolio = InvestmentPortfolioMapper.FromDto(dto);
+            await _unitOfWork.Portfolios.UpdateAsync(portfolio);
             await _unitOfWork.CompleteAsync();
 
             return NoContent();
