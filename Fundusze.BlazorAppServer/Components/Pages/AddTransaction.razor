@@ -19,11 +19,10 @@
         {
             <div class="mud-form-item mud-input-control mb-4">
                 <label class="mud-input-label mud-input-label-animated">Portfel</label>
-                <select @bind="_transaction.PortfolioId" class="form-select" required>
+                <select @bind="_transaction.PortfolioId" class="form-select" required disabled="@_isPortfolioContext">
                     <option value="0" disabled selected>Proszę wybrać...</option>
                     @foreach (var portfolio in _allPortfolios)
                     {
-                        @* POPRAWKA TUTAJ: PortfolioInfo -> FundName *@
                         <option value="@portfolio.Id">@portfolio.FundName</option>
                     }
                 </select>
@@ -68,6 +67,10 @@
     private MudForm _form = default!;
     private bool _success;
 
+    [Parameter, SupplyParameterFromQuery]
+    public int? PortfolioId { get; set; }
+    private bool _isPortfolioContext = false;
+
     private TransactionDto _transaction = new() { Type = "Buy" };
     private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
 
@@ -76,6 +79,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (PortfolioId.HasValue)
+        {
+            _transaction.PortfolioId = PortfolioId.Value;
+            _isPortfolioContext = true;
+        }
+
         try
         {
             await Task.WhenAll(
@@ -116,7 +125,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            Snackbar.Add("Transakcja została zapisana!", Severity.Success);
+            Snackbar.Add("Transakcja została zapisana! Wartość portfela zaktualizowana.", Severity.Success);
             BackToList();
         }
         else
@@ -128,6 +137,13 @@
 
     private void BackToList()
     {
-        NavigationManager.NavigateTo("/transactions");
+        if (_isPortfolioContext)
+        {
+            NavigationManager.NavigateTo($"/portfolios/{_transaction.PortfolioId}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/transactions");
+        }
     }
 }

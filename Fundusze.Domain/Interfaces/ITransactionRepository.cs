@@ -14,5 +14,6 @@ namespace Fundusze.Domain.Interfaces
         Task UpdateAsync(Transaction transaction);
         Task DeleteAsync(Transaction transaction);
         Task<bool> ExistsAsync(int id);
+        Task<IEnumerable<Transaction>> GetAllByPortfolioIdAsync(int portfolioId);
     }
 }

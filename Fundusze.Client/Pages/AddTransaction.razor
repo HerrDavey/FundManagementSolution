@@ -33,6 +33,7 @@
                 <MudSelectItem T="string" Value="@("Sell")">Sell</MudSelectItem>
             </MudSelect>
 
+            @* POPRAWKA: Wracamy do niezawodnego pola tekstowego dla daty *@
             <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data transakcji" Required="true" />
             <MudNumericField T="int" @bind-Value="_transaction.Quantity" Label="Ilość" Required="true" Min="1" />
             <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" Required="true" Min="0.01m" />
@@ -52,14 +53,24 @@
 @code {
     private MudForm _form = default!;
     private bool _success;
+
     private TransactionDto _transaction = new() { Type = "Buy" };
     private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
-    
+
     private List<InvestmentPortfolioDto>? _allPortfolios;
     private List<AssetDto>? _allAssets;
 
     protected override async Task OnInitializedAsync()
     {
+        // Sprawdzamy czy ID portfela zostało przekazane w URL
+        var uri = new Uri(NavigationManager.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var portfolioIdParam = queryParams["portfolioId"];
+        if (int.TryParse(portfolioIdParam, out var portfolioId))
+        {
+            _transaction.PortfolioId = portfolioId;
+        }
+
         try
         {
             await Task.WhenAll(
@@ -110,6 +121,14 @@
 
     private void BackToList()
     {
-        NavigationManager.NavigateTo("/transactions");
+        // Jeśli przyszliśmy z konkretnego portfela, wracamy do jego szczegółów
+        if (_transaction.PortfolioId != 0)
+        {
+            NavigationManager.NavigateTo($"/portfolios/{_transaction.PortfolioId}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/transactions");
+        }
     }
 }

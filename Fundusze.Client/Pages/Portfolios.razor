@@ -17,29 +17,17 @@
     }
     else
     {
-        <MudTable Items="@_portfolios" Hover="true" Breakpoint="Breakpoint.Sm">
+        @* ZMIANA TUTAJ: Dodajemy OnRowClick *@
+        <MudTable Items="@_portfolios" Hover="true" Breakpoint="Breakpoint.Sm" OnRowClick="@((TableRowClickEventArgs<InvestmentPortfolioDto> args) => GoToDetails(args.Item.Id))" Style="cursor:pointer;">
             <HeaderContent>
                 <MudTh>Nazwa Funduszu</MudTh>
                 <MudTh>Wartość Aktywów Netto (NAV)</MudTh>
                 <MudTh>Data Utworzenia</MudTh>
-                <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Nazwa Funduszu">@context.FundName</MudTd>
                 <MudTd DataLabel="NAV">@context.NAV.ToString("C")</MudTd>
                 <MudTd DataLabel="Data Utworzenia">@context.CreatedDate.ToShortDateString()</MudTd>
-                <MudTd>
-                    @if (_portfolioPendingDelete?.Id == context.Id)
-                    {
-                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeletePortfolio(context.Id))">Potwierdź</MudButton>
-                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => _portfolioPendingDelete = null)">Anuluj</MudButton>
-                    }
-                    else
-                    {
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditPortfolio(context.Id))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => _portfolioPendingDelete = context)" />
-                    }
-                </MudTd>
             </RowTemplate>
         </MudTable>
     }
@@ -47,7 +35,6 @@
 
 @code {
     private List<InvestmentPortfolioDto>? _portfolios;
-    private InvestmentPortfolioDto? _portfolioPendingDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,28 +48,9 @@
         }
     }
 
-    private void EditPortfolio(int id)
+    // Nowa metoda do nawigacji
+    private void GoToDetails(int id)
     {
-        NavigationManager.NavigateTo($"/portfolios/edit/{id}");
-    }
-
-    private async Task DeletePortfolio(int id)
-    {
-        var response = await Http.DeleteAsync($"api/investmentportfolio/{id}");
-        if (response.IsSuccessStatusCode)
-        {
-            var itemToRemove = _portfolios?.FirstOrDefault(p => p.Id == id);
-            if (itemToRemove != null)
-            {
-                _portfolios.Remove(itemToRemove);
-            }
-            Snackbar.Add("Portfel został usunięty.", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add("Wystąpił błąd podczas usuwania portfela.", Severity.Error);
-        }
-        _portfolioPendingDelete = null;
-        StateHasChanged();
+        NavigationManager.NavigateTo($"/portfolios/{id}");
     }
 }

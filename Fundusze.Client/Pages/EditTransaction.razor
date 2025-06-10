@@ -34,6 +34,7 @@
                 <MudSelectItem T="string" Value="@("Sell")">Sell</MudSelectItem>
             </MudSelect>
 
+            @* POPRAWKA: Wracamy do niezawodnego pola tekstowego dla daty *@
             <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data transakcji" Required="true" />
             <MudNumericField T="int" @bind-Value="_transaction.Quantity" Label="Ilość" Required="true" Min="1" />
             <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" Required="true" Min="0.01m" />

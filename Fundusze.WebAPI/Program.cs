@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 
 var app = builder.Build();
 

@@ -1,0 +1,121 @@
+﻿@page "/portfolios/{Id:int}"
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@if (_details is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudPaper Class="p-4">
+        <MudText Typo="Typo.h4">Szczegóły Portfela</MudText>
+        <MudText Typo="Typo.h6" Color="Color.Primary" GutterBottom="true">@_details.FundName</MudText>
+
+        <MudGrid Class="mt-4">
+            <MudItem xs="12" sm="6">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Posiadane Aktywa</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (!_details.AggregatedAssets.Any())
+                        {
+                            <MudText>Brak aktywów w portfelu.</MudText>
+                        }
+                        else
+                        {
+                            <MudSimpleTable Hover="true">
+                                <thead>
+                                    <tr>
+                                        <th>Aktywo</th>
+                                        <th>Ilość</th>
+                                        <th>Aktualna Wartość</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var asset in _details.AggregatedAssets)
+                                    {
+                                        <tr>
+                                            <td>@asset.AssetName</td>
+                                            <td>@asset.TotalQuantity</td>
+                                            <td>@asset.CurrentValue.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Podsumowanie</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText><b>Aktualna wartość (NAV):</b> @_details.NAV.ToString("C")</MudText>
+                        <MudText><b>Data utworzenia:</b> @_details.CreatedDate.ToShortDateString()</MudText>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="mt-4"
+                                   OnClick="GoToAddTransaction">
+                            Dodaj Nową Transakcję
+                        </MudButton>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudText Typo="Typo.h5" Class="mt-6 mb-4">Historia Transakcji</MudText>
+        <MudTable Items="@_details.Transactions" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>Data</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Aktywo</MudTh>
+                <MudTh>Ilość</MudTh>
+                <MudTh>Cena</MudTh>
+                <MudTh>Wartość</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Data">@context.TransactionDate.ToShortDateString()</MudTd>
+                <MudTd DataLabel="Typ">
+                    <MudChip T="string" Color="@(context.Type == "Buy" ? Color.Success : Color.Error)">@context.Type</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Aktywo">@context.AssetName</MudTd>
+                <MudTd DataLabel="Ilość">@context.Quantity</MudTd>
+                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd DataLabel="Wartość">@((context.Quantity * context.Price).ToString("C"))</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private PortfolioDetailsDto? _details;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _details = await Http.GetFromJsonAsync<PortfolioDetailsDto>($"api/investmentportfolio/{Id}/details");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Nie udało się załadować szczegółów portfela: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void GoToAddTransaction()
+    {
+        // Przekierowujemy na stronę dodawania, przekazując ID portfela w adresie URL
+        NavigationManager.NavigateTo($"/transactions/add?portfolioId={Id}");
+    }
+}

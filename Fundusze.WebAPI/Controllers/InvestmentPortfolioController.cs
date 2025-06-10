@@ -1,10 +1,9 @@
-﻿using Fundusze.Domain.Entities;
+﻿using Fundusze.Application.DTOs;
+using Fundusze.Application.Mappers;
+using Fundusze.Application.Services;
+using Fundusze.Domain.Entities;
 using Fundusze.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Fundusze.Application.DTOs;
-using Fundusze.Application.Mappers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -13,10 +12,12 @@ namespace Fundusze.WebAPI.Controllers
     public class InvestmentPortfolioController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPortfolioService _portfolioService;
 
-        public InvestmentPortfolioController(IUnitOfWork unitOfWork)
+        public InvestmentPortfolioController(IUnitOfWork unitOfWork, IPortfolioService portfolioService)
         {
             _unitOfWork = unitOfWork;
+            _portfolioService = portfolioService;
         }
 
         [HttpGet]
@@ -36,6 +37,21 @@ namespace Fundusze.WebAPI.Controllers
             return Ok(InvestmentPortfolioMapper.ToDto(portfolio));
         }
 
+        // NOWY ENDPOINT
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<PortfolioDetailsDto>> GetDetails(int id)
+        {
+            try
+            {
+                var details = await _portfolioService.GetPortfolioDetailsAsync(id);
+                return Ok(details);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<InvestmentPortfolioDto>> CreateInvestmentPortfolio([FromBody] InvestmentPortfolioDto dto)
         {
@@ -45,7 +61,6 @@ namespace Fundusze.WebAPI.Controllers
             await _unitOfWork.Portfolios.AddAsync(portfolio);
             await _unitOfWork.CompleteAsync();
 
-            // Pobieramy nowo utworzony obiekt z bazy, aby załadować powiązane dane (np. Fund)
             var createdPortfolio = await _unitOfWork.Portfolios.GetByIdAsync(portfolio.Id);
             return CreatedAtAction(nameof(Get), new { id = portfolio.Id }, InvestmentPortfolioMapper.ToDto(createdPortfolio));
         }

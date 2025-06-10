@@ -56,5 +56,15 @@ namespace Fundusze.Infrastucture.Repositories
             _context.Transactions.Update(transaction);
             await Task.CompletedTask;
         }
+
+        public async Task<IEnumerable<Transaction>> GetAllByPortfolioIdAsync(int portfolioId)
+        {
+            return await _context.Transactions
+                .Where(t => t.PortfolioId == portfolioId)
+                .Include(p => p.Portfolio)
+                .Include(a => a.Asset)
+                .OrderByDescending(t => t.TransactionDate)
+                .ToListAsync();
+        }
     }
 }
