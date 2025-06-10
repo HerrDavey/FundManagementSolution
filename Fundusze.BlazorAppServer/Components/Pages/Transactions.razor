@@ -3,6 +3,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
 <PageTitle>Transakcje</PageTitle>
 
@@ -27,7 +28,7 @@
                 <MudTh>Ilość</MudTh>
                 <MudTh>Cena</MudTh>
                 <MudTh>Wartość</MudTh>
-                <MudTh></MudTh>
+                <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Data">@context.TransactionDate.ToShortDateString()</MudTd>
@@ -35,12 +36,22 @@
                     <MudChip T="string" Color="@(context.Type == "Buy" ? Color.Success : Color.Error)">@context.Type</MudChip>
                 </MudTd>
                 <MudTd DataLabel="Aktywo">@context.AssetName</MudTd>
+                @* POPRAWKA TUTAJ: Używamy poprawnej nazwy właściwości *@
                 <MudTd DataLabel="Portfel">@context.PortfolioInfo</MudTd>
                 <MudTd DataLabel="Ilość">@context.Quantity</MudTd>
                 <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
                 <MudTd DataLabel="Wartość">@((context.Quantity * context.Price).ToString("C"))</MudTd>
                 <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditTransaction(context.Id))" />
+                    @if (_transactionPendingDelete?.Id == context.Id)
+                    {
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteTransaction(context.Id))">Potwierdź</MudButton>
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => _transactionPendingDelete = null)">Anuluj</MudButton>
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditTransaction(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => _transactionPendingDelete = context)" />
+                    }
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -54,6 +65,7 @@
 @code {
     private List<TransactionDto>? _transactions;
     private bool _loading = true;
+    private TransactionDto? _transactionPendingDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,5 +87,25 @@
     private void EditTransaction(int id)
     {
         NavigationManager.NavigateTo($"/transactions/edit/{id}");
+    }
+
+    private async Task DeleteTransaction(int id)
+    {
+        var response = await Http.DeleteAsync($"api/transaction/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var transactionToRemove = _transactions.FirstOrDefault(t => t.Id == id);
+            if (transactionToRemove != null)
+            {
+                _transactions.Remove(transactionToRemove);
+            }
+            Snackbar.Add("Transakcja została usunięta.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Wystąpił błąd podczas usuwania transakcji.", Severity.Error);
+        }
+        _transactionPendingDelete = null;
+        StateHasChanged();
     }
 }

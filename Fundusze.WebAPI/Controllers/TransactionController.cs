@@ -2,6 +2,8 @@
 using Fundusze.Domain.Interfaces;
 using Fundusze.Application.DTOs;
 using Fundusze.Application.Mappers;
+using Fundusze.Application.Services; // <-- Nowy using
+using Fundusze.Domain;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -10,10 +12,13 @@ namespace Fundusze.WebAPI.Controllers
     public class TransactionController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITransactionService _transactionService; // <-- Nowy serwis
 
-        public TransactionController(IUnitOfWork unitOfWork)
+        // Wstrzykujemy ITransactionService zamiast tylko IUnitOfWork
+        public TransactionController(IUnitOfWork unitOfWork, ITransactionService transactionService)
         {
             _unitOfWork = unitOfWork;
+            _transactionService = transactionService;
         }
 
         [HttpGet]
@@ -33,17 +38,31 @@ namespace Fundusze.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateTransaction([FromBody] TransactionDto dto)
+        public async Task<ActionResult<TransactionDto>> CreateTransaction([FromBody] TransactionDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var transaction = TransactionMapper.FromDto(dto);
-            await _unitOfWork.Transactions.AddAsync(transaction);
-            await _unitOfWork.CompleteAsync();
+            try
+            {
+                // Zamiast logiki w kontrolerze, wywołujemy jedną metodę z serwisu
+                var createdTransaction = await _transactionService.AddTransactionAndUpdatePortfolioAsync(dto);
 
-            return CreatedAtAction(nameof(Get), new { id = transaction.Id }, TransactionMapper.ToDto(transaction));
+                // Pobieramy pełne dane (z Assetem) dla odpowiedzi
+                var resultDto = TransactionMapper.ToDto(await _unitOfWork.Transactions.GetByIdAsync(createdTransaction.Id));
+
+                return CreatedAtAction(nameof(Get), new { id = createdTransaction.Id }, resultDto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        // Metody Update i Delete pozostają bez zmian (na razie)
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateTransaction(int id, [FromBody] TransactionDto dto)
         {

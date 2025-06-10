@@ -22,7 +22,6 @@
                 <select @bind="_transaction.PortfolioId" class="form-select" required>
                     @foreach (var portfolio in _allPortfolios)
                     {
-                        @* POPRAWKA TUTAJ: PortfolioInfo -> FundName *@
                         <option value="@portfolio.Id">@portfolio.FundName</option>
                     }
                 </select>

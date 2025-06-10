@@ -3,6 +3,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
 <PageTitle>Portfele Inwestycyjne</PageTitle>
 
@@ -23,14 +24,23 @@
                 <MudTh>Nazwa Funduszu</MudTh>
                 <MudTh>Wartość Aktywów Netto (NAV)</MudTh>
                 <MudTh>Data Utworzenia</MudTh>
-                <MudTh></MudTh>
+                <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Nazwa Funduszu">@context.FundName</MudTd>
                 <MudTd DataLabel="NAV">@context.NAV.ToString("C")</MudTd>
                 <MudTd DataLabel="Data Utworzenia">@context.CreatedDate.ToShortDateString()</MudTd>
                 <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditPortfolio(context.Id))" />
+                    @if (_portfolioPendingDelete?.Id == context.Id)
+                    {
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeletePortfolio(context.Id))">Potwierdź</MudButton>
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => _portfolioPendingDelete = null)">Anuluj</MudButton>
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditPortfolio(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => _portfolioPendingDelete = context)" />
+                    }
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -44,6 +54,7 @@
 @code {
     private List<InvestmentPortfolioDto>? _portfolios;
     private bool _loading = true;
+    private InvestmentPortfolioDto? _portfolioPendingDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,5 +76,25 @@
     private void EditPortfolio(int id)
     {
         NavigationManager.NavigateTo($"/portfolios/edit/{id}");
+    }
+
+    private async Task DeletePortfolio(int id)
+    {
+        var response = await Http.DeleteAsync($"api/investmentportfolio/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var portfolioToRemove = _portfolios.FirstOrDefault(p => p.Id == id);
+            if (portfolioToRemove != null)
+            {
+                _portfolios.Remove(portfolioToRemove);
+            }
+            Snackbar.Add("Portfel został usunięty.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Wystąpił błąd podczas usuwania portfela.", Severity.Error);
+        }
+        _portfolioPendingDelete = null;
+        StateHasChanged();
     }
 }
