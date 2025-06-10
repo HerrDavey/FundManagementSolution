@@ -13,25 +13,25 @@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/assets/add"))">Dodaj nowe</MudButton>
     </div>
 
-    @if (_loading)
+    @if (_assets is null)
     {
         <MudProgressCircular Indeterminate="true" />
     }
-    else if (_assets != null)
+    else
     {
-        <MudTable Items="@_assets" Hover="true">
+        <MudTable Items="@_assets" Hover="true" Breakpoint="Breakpoint.Sm">
             <HeaderContent>
                 <MudTh>Nazwa</MudTh>
                 <MudTh>Typ</MudTh>
                 <MudTh>ISIN</MudTh>
-                <MudTh>Cena</MudTh>
+                <MudTh>Domyślna cena</MudTh> @*<-- ZMIANA TUTAJ*@
                 <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Nazwa">@context.Name</MudTd>
                 <MudTd DataLabel="Typ">@context.Type</MudTd>
                 <MudTd DataLabel="ISIN">@context.ISIN</MudTd>
-                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd DataLabel="Domyślna cena">@context.Price.ToString("C")</MudTd> @*<-- ZMIANA TUTAJ*@
                 <MudTd>
                     @if (_assetPendingDelete?.Id == context.Id)
                     {
@@ -47,32 +47,15 @@
             </RowTemplate>
         </MudTable>
     }
-    else
-    {
-        <MudText Color="Color.Error">Nie udało się załadować danych.</MudText>
-    }
 </MudPaper>
 
 @code {
     private List<AssetDto>? _assets;
-    private bool _loading = true;
     private AssetDto? _assetPendingDelete;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _assets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading assets: {ex.Message}");
-            _assets = null;
-        }
-        finally
-        {
-            _loading = false;
-        }
+        _assets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
     }
 
     private void EditAsset(int id)
@@ -82,21 +65,14 @@
 
     private async Task DeleteAsset(int id)
     {
-        var response = await Http.DeleteAsync($"api/asset/{id}");
-        if (response.IsSuccessStatusCode)
+        await Http.DeleteAsync($"api/asset/{id}");
+        var assetToRemove = _assets.FirstOrDefault(a => a.Id == id);
+        if (assetToRemove != null)
         {
-            var assetToRemove = _assets.FirstOrDefault(a => a.Id == id);
-            if (assetToRemove != null)
-            {
-                _assets.Remove(assetToRemove);
-            }
-            Snackbar.Add("Aktywo zostało usunięte.", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add("Wystąpił błąd podczas usuwania aktywa.", Severity.Error);
+            _assets.Remove(assetToRemove);
         }
         _assetPendingDelete = null;
         StateHasChanged();
+        Snackbar.Add("Aktywo zostało usunięte.", Severity.Success);
     }
 }
