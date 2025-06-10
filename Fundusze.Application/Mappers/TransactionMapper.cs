@@ -10,13 +10,16 @@ namespace Fundusze.Application.Mappers
             return new TransactionDto
             {
                 Id = transaction.Id,
-                // POPRAWKA TUTAJ
                 PortfolioId = transaction.PortfolioId,
                 AssetId = transaction.AssetId,
                 TransactionDate = transaction.TransactionDate,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
                 Type = transaction.Type.ToString(),
+
+                // Uzupełniamy nowe pola - repozytorium i tak załącza te dane
+                AssetName = transaction.Asset?.Name,
+                PortfolioInfo = $"Portfel #{transaction.PortfolioId}"
             };
         }
 
@@ -25,7 +28,6 @@ namespace Fundusze.Application.Mappers
             return new Transaction
             {
                 Id = dto.Id,
-                // POPRAWKA TUTAJ
                 PortfolioId = dto.PortfolioId,
                 AssetId = dto.AssetId,
                 TransactionDate = dto.TransactionDate,

@@ -1,0 +1,80 @@
+﻿@page "/transactions"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Transakcje</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista Transakcji</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/transactions/add"))">Dodaj nową</MudButton>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_transactions != null)
+    {
+        <MudTable Items="@_transactions" Hover="true">
+            <HeaderContent>
+                <MudTh>Data</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Aktywo</MudTh>
+                <MudTh>Portfel</MudTh>
+                <MudTh>Ilość</MudTh>
+                <MudTh>Cena</MudTh>
+                <MudTh>Wartość</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Data">@context.TransactionDate.ToShortDateString()</MudTd>
+                <MudTd DataLabel="Typ">
+                    @* POPRAWKA TUTAJ: Dodajemy T="string" *@
+                    <MudChip T="string" Color="@(context.Type == "Buy" ? Color.Success : Color.Error)">@context.Type</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Aktywo">@context.AssetName</MudTd>
+                <MudTd DataLabel="Portfel">@context.PortfolioInfo</MudTd>
+                <MudTd DataLabel="Ilość">@context.Quantity</MudTd>
+                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd DataLabel="Wartość">@((context.Quantity * context.Price).ToString("C"))</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditTransaction(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText Color="Color.Error">Nie udało się załadować danych.</MudText>
+    }
+</MudPaper>
+
+@code {
+    private List<TransactionDto>? _transactions;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _transactions = await Http.GetFromJsonAsync<List<TransactionDto>>("api/transaction");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading transactions: {ex.Message}");
+            _transactions = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void EditTransaction(int id)
+    {
+        NavigationManager.NavigateTo($"/transactions/edit/{id}");
+    }
+}

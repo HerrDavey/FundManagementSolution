@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Fundusze.Application.DTOs
 {
     public class TransactionDto
@@ -18,6 +17,11 @@ namespace Fundusze.Application.DTOs
         [Required]
         public int AssetId { get; set; }
 
+        // Pola dodane dla czytelności w UI
+        public string? AssetName { get; set; }
+        public string? PortfolioInfo { get; set; }
+
+
         [Required]
         public DateTime TransactionDate { get; set; }
 
@@ -28,6 +32,6 @@ namespace Fundusze.Application.DTOs
         public decimal Price { get; set; }
 
         [Required]
-        public string Type { get; set; } = string.Empty; // Zakup lub Sprzedaż
+        public string Type { get; set; } = string.Empty;
     }
 }
