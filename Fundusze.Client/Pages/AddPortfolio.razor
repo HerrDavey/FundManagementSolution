@@ -1,0 +1,87 @@
+﻿@page "/portfolios/add"
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Dodaj Portfel</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudForm @ref="_form" Model="_portfolio" @bind-IsValid="@_success">
+        <MudText Typo="Typo.h3" Class="mb-4">Nowy Portfel Inwestycyjny</MudText>
+
+        @if (_allFunds is null)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <MudSelect T="int" @bind-Value="_portfolio.FundId" Label="Wybierz fundusz" For="@(() => _portfolio.FundId)" Required="true" RequiredError="Wybór funduszu jest wymagany!">
+                @foreach (var fund in _allFunds)
+                {
+                    <MudSelectItem T="int" Value="@fund.Id">@fund.Name</MudSelectItem>
+                }
+            </MudSelect>
+        }
+
+        <MudNumericField T="decimal" @bind-Value="_portfolio.NAV" Label="Początkowa Wartość Aktywów Netto (NAV)" For="@(() => _portfolio.NAV)" Required="true" Min="0.00m" />
+        <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data utworzenia" Required="true" />
+
+        <div class="d-flex align-center justify-space-between mt-4">
+            <MudButton ButtonType="ButtonType.Button" OnClick="SubmitForm" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)">
+                Zapisz
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">
+                Powrót do listy
+            </MudButton>
+        </div>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private MudForm _form = default!;
+    private bool _success;
+    private List<FundDto>? _allFunds;
+    private InvestmentPortfolioDto _portfolio = new();
+    private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _allFunds = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Nie udało się załadować listy funduszy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (string.IsNullOrEmpty(_dateString)) _success = false;
+        if (!_success)
+        {
+            Snackbar.Add("Proszę poprawnie wypełnić formularz.", Severity.Warning);
+            return;
+        }
+        _portfolio.CreatedDate = DateTime.Parse(_dateString);
+        var response = await Http.PostAsJsonAsync("api/investmentportfolio", _portfolio);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Portfel został zapisany!", Severity.Success);
+            BackToList();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Snackbar.Add($"Wystąpił błąd podczas zapisu: {error}", Severity.Error);
+        }
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/portfolios");
+    }
+}

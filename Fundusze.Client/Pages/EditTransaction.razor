@@ -1,0 +1,121 @@
+﻿@page "/transactions/edit/{Id:int}"
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edytuj Transakcję</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudText Typo="Typo.h5" Class="mb-4">Edytuj Transakcję</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Warning" Class="mb-4">Uwaga: Edycja transakcji nie aktualizuje automatycznie wartości portfela. Ta logika jest zaimplementowana tylko przy tworzeniu nowej transakcji.</MudText>
+
+    @if (_transaction is null || _allPortfolios is null || _allAssets is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudForm @ref="_form" Model="_transaction" @bind-IsValid="_success">
+            <MudSelect T="int" @bind-Value="_transaction.PortfolioId" Label="Portfel" Required="true" ReadOnly="true">
+                @foreach (var portfolio in _allPortfolios)
+                {
+                    <MudSelectItem T="int" Value="@portfolio.Id">@portfolio.FundName</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="int" @bind-Value="_transaction.AssetId" Label="Aktywo" Required="true" ReadOnly="true">
+                @foreach (var asset in _allAssets)
+                {
+                    <MudSelectItem T="int" Value="@asset.Id">@asset.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" @bind-Value="_transaction.Type" Label="Typ transakcji" Required="true" ReadOnly="true">
+                <MudSelectItem T="string" Value="@("Buy")">Buy</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Sell")">Sell</MudSelectItem>
+            </MudSelect>
+
+            <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data transakcji" Required="true" />
+            <MudNumericField T="int" @bind-Value="_transaction.Quantity" Label="Ilość" Required="true" Min="1" />
+            <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" Required="true" Min="0.01m" />
+
+            <div class="d-flex align-center justify-space-between mt-4">
+                <MudButton ButtonType="ButtonType.Button" OnClick="SubmitForm" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)">
+                    Zapisz zmiany
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@(() => NavigationManager.NavigateTo("/transactions"))">
+                    Anuluj
+                </MudButton>
+            </div>
+        </MudForm>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MudForm _form = default!;
+    private bool _success;
+    private TransactionDto? _transaction;
+    private string? _dateString;
+
+    private List<InvestmentPortfolioDto>? _allPortfolios;
+    private List<AssetDto>? _allAssets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Task.WhenAll(
+                LoadTransactionData(),
+                LoadPortfolios(),
+                LoadAssets()
+            );
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Wystąpił krytyczny błąd podczas ładowania danych: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadTransactionData()
+    {
+        _transaction = await Http.GetFromJsonAsync<TransactionDto>($"api/transaction/{Id}");
+        if (_transaction is not null)
+        {
+            _dateString = _transaction.TransactionDate.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private async Task LoadPortfolios()
+    {
+        _allPortfolios = await Http.GetFromJsonAsync<List<InvestmentPortfolioDto>>("api/investmentportfolio");
+    }
+
+    private async Task LoadAssets()
+    {
+        _allAssets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
+    }
+
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (string.IsNullOrEmpty(_dateString)) _success = false;
+        if (!_success) return;
+
+        if (_transaction is not null)
+        {
+            _transaction.TransactionDate = DateTime.Parse(_dateString);
+        }
+
+        var response = await Http.PutAsJsonAsync($"api/transaction/{Id}", _transaction);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Zmiany zostały zapisane.", Severity.Success);
+            NavigationManager.NavigateTo("/transactions");
+        }
+        else
+        {
+            Snackbar.Add("Błąd podczas zapisu zmian.", Severity.Error);
+        }
+    }
+}
