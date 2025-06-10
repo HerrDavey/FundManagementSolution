@@ -1,0 +1,56 @@
+﻿@page "/transactions"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Transakcje</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista Transakcji</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/transactions/add"))">Dodaj nową</MudButton>
+    </div>
+
+    @if (_transactions is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_transactions" Hover="true">
+            <HeaderContent>
+                <MudTh>Data</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Aktywo</MudTh>
+                <MudTh>Portfel</MudTh>
+                <MudTh>Ilość</MudTh>
+                <MudTh>Cena</MudTh>
+                <MudTh>Wartość</MudTh>
+                <MudTh>Akcje</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Data">@context.TransactionDate.ToShortDateString()</MudTd>
+                <MudTd DataLabel="Typ">
+                    <MudChip T="string" Color="@(context.Type == "Buy" ? Color.Success : Color.Error)">@context.Type</MudChip>
+                </MudTd>
+                <MudTd DataLabel="Aktywo">@context.AssetName</MudTd>
+                <MudTd DataLabel="Portfel">@context.PortfolioInfo</MudTd>
+                <MudTd DataLabel="Ilość">@context.Quantity</MudTd>
+                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd DataLabel="Wartość">@((context.Quantity * context.Price).ToString("C"))</MudTd>
+                <MudTd>
+                    @* Na razie puste *@
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private List<TransactionDto>? _transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _transactions = await Http.GetFromJsonAsync<List<TransactionDto>>("api/transaction");
+    }
+}

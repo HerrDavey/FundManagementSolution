@@ -3,12 +3,27 @@ using Microsoft.EntityFrameworkCore;
 using Fundusze.Domain.Interfaces;
 using Fundusze.Infrastucture;
 using Serilog;
-using Fundusze.Application.Services; // <-- Nowy using
+using Fundusze.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Definicja polityki CORS
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+// Dodanie serwisu CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("https://localhost:7074")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
 
 builder.Services.AddDbContext<FundsDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -17,9 +32,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Rejestracja zale¿noœci
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<ITransactionService, TransactionService>(); // <-- Nowa linia
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 var app = builder.Build();
 
@@ -31,6 +45,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
+
+app.UseRouting(); // Upewnij siê, ¿e ta linia jest przed UseCors i UseAuthorization
+
+// W³¹czenie middleware CORS
+app.UseCors(MyAllowSpecificOrigins);
+
 app.UseAuthorization();
 app.MapControllers();
 

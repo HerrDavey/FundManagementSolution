@@ -1,0 +1,46 @@
+﻿@page "/portfolios"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Portfele Inwestycyjne</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista Portfeli Inwestycyjnych</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/portfolios/add"))">Dodaj nowy</MudButton>
+    </div>
+
+    @if (_portfolios is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_portfolios" Hover="true">
+            <HeaderContent>
+                <MudTh>Nazwa Funduszu</MudTh>
+                <MudTh>Wartość Aktywów Netto (NAV)</MudTh>
+                <MudTh>Data Utworzenia</MudTh>
+                <MudTh>Akcje</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nazwa Funduszu">@context.FundName</MudTd>
+                <MudTd DataLabel="NAV">@context.NAV.ToString("C")</MudTd>
+                <MudTd DataLabel="Data Utworzenia">@context.CreatedDate.ToShortDateString()</MudTd>
+                <MudTd>
+                    @* Na razie puste *@
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private List<InvestmentPortfolioDto>? _portfolios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _portfolios = await Http.GetFromJsonAsync<List<InvestmentPortfolioDto>>("api/investmentportfolio");
+    }
+}

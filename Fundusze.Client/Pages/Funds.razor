@@ -1,0 +1,55 @@
+﻿@page "/funds"
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Fundusze</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista funduszy</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/funds/add"))">Dodaj nowy</MudButton>
+    </div>
+
+    @if (_funds is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_funds" Hover="true">
+            <HeaderContent>
+                <MudTh>Nazwa</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Zarządzający</MudTh>
+                <MudTh>Akcje</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                <MudTd DataLabel="Typ">@context.Type</MudTd>
+                <MudTd DataLabel="Zarządzający">@context.Managed</MudTd>
+                <MudTd>
+                    @* Na razie zostawiamy puste, dodamy logikę w następnym kroku *@
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private List<FundDto>? _funds;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _funds = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Błąd ładowania danych: {ex.Message}", Severity.Error);
+        }
+    }
+}

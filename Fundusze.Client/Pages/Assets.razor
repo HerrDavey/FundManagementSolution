@@ -1,0 +1,48 @@
+﻿@page "/assets"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Aktywa</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista Aktywów</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/assets/add"))">Dodaj nowe</MudButton>
+    </div>
+
+    @if (_assets is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_assets" Hover="true">
+            <HeaderContent>
+                <MudTh>Nazwa</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>ISIN</MudTh>
+                <MudTh>Cena</MudTh>
+                <MudTh>Akcje</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                <MudTd DataLabel="Typ">@context.Type</MudTd>
+                <MudTd DataLabel="ISIN">@context.ISIN</MudTd>
+                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd>
+                    @* Na razie puste *@
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    private List<AssetDto>? _assets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _assets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
+    }
+}
