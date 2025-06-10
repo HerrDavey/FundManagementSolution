@@ -1,0 +1,133 @@
+﻿@page "/transactions/add"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Dodaj Transakcję</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudForm @ref="_form" Model="_transaction" @bind-IsValid="@_success">
+        <MudText Typo="Typo.h3" Class="mb-4">Nowa Transakcja</MudText>
+
+        @if (_allPortfolios is null || _allAssets is null)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Portfel</label>
+                <select @bind="_transaction.PortfolioId" class="form-select" required>
+                    <option value="0" disabled selected>Proszę wybrać...</option>
+                    @foreach (var portfolio in _allPortfolios)
+                    {
+                        @* POPRAWKA TUTAJ: PortfolioInfo -> FundName *@
+                        <option value="@portfolio.Id">@portfolio.FundName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Aktywo</label>
+                <select @bind="_transaction.AssetId" class="form-select" required>
+                    <option value="0" disabled selected>Proszę wybrać...</option>
+                    @foreach (var asset in _allAssets)
+                    {
+                        <option value="@asset.Id">@asset.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Typ transakcji</label>
+                <select @bind="_transaction.Type" class="form-select" required>
+                    <option value="Buy">Buy</option>
+                    <option value="Sell">Sell</option>
+                </select>
+            </div>
+
+            <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data transakcji" Required="true" />
+            <MudNumericField T="int" @bind-Value="_transaction.Quantity" Label="Ilość" Required="true" Min="1" />
+            <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" Required="true" Min="0.01m" />
+        }
+
+        <div class="d-flex align-center justify-space-between mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
+                Zapisz
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">
+                Powrót do listy
+            </MudButton>
+        </div>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private MudForm _form = default!;
+    private bool _success;
+
+    private TransactionDto _transaction = new() { Type = "Buy" };
+    private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
+
+    private List<InvestmentPortfolioDto>? _allPortfolios;
+    private List<AssetDto>? _allAssets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Task.WhenAll(
+                LoadPortfolios(),
+                LoadAssets()
+            );
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Nie udało się załadować danych: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadPortfolios()
+    {
+        _allPortfolios = await Http.GetFromJsonAsync<List<InvestmentPortfolioDto>>("api/investmentportfolio");
+    }
+
+    private async Task LoadAssets()
+    {
+        _allAssets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
+    }
+
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (_transaction.PortfolioId == 0 || _transaction.AssetId == 0) _success = false;
+
+        if (!_success)
+        {
+            Snackbar.Add("Proszę poprawnie wypełnić formularz.", Severity.Warning);
+            return;
+        }
+
+        _transaction.TransactionDate = DateTime.Parse(_dateString);
+
+        var response = await Http.PostAsJsonAsync("api/transaction", _transaction);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Transakcja została zapisana!", Severity.Success);
+            BackToList();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Snackbar.Add($"Wystąpił błąd podczas zapisu: {error}", Severity.Error);
+        }
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/transactions");
+    }
+}
