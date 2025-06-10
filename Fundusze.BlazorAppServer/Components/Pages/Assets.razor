@@ -1,0 +1,71 @@
+﻿@page "/assets"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Aktywa</PageTitle>
+
+<MudPaper Class="p-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5">Lista Aktywów</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/assets/add"))">Dodaj nowe</MudButton>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_assets != null)
+    {
+        <MudTable Items="@_assets" Hover="true">
+            <HeaderContent>
+                <MudTh>Nazwa</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>ISIN</MudTh>
+                <MudTh>Cena</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                <MudTd DataLabel="Typ">@context.Type</MudTd>
+                <MudTd DataLabel="ISIN">@context.ISIN</MudTd>
+                <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditAsset(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText Color="Color.Error">Nie udało się załadować danych.</MudText>
+    }
+</MudPaper>
+
+@code {
+    private List<AssetDto>? _assets;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _assets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading assets: {ex.Message}");
+            _assets = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void EditAsset(int id)
+    {
+        NavigationManager.NavigateTo($"/assets/edit/{id}");
+    }
+}

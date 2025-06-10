@@ -1,0 +1,72 @@
+﻿@page "/funds/edit/{Id:int}"
+@rendermode InteractiveServer
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Edytuj fundusz</PageTitle>
+
+<MudPaper Class="p-4 mx-auto" MaxWidth="500px">
+    <MudText Typo="Typo.h5" Class="mb-4">Edytuj fundusz</MudText>
+
+    @if (_fund is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudForm @ref="_form" Model="_fund" @bind-IsValid="_success">
+            <MudTextField @bind-Value="_fund.Name" Label="Nazwa funduszu" For="@(() => _fund.Name)" Required="true" />
+            <MudTextField @bind-Value="_fund.Type" Label="Typ" For="@(() => _fund.Type)" Required="true" />
+            <MudTextField @bind-Value="_fund.Managed" Label="Zarządzający" For="@(() => _fund.Managed)" Required="true" />
+            <MudTextField @bind-Value="_fund.CreatedDate" InputType="InputType.Date" Label="Data utworzenia" For="@(() => _fund.CreatedDate)" Required="true" />
+
+            <div class="d-flex align-center justify-space-between mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
+                    Zapisz zmiany
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@(() => NavigationManager.NavigateTo("/funds"))">
+                    Anuluj
+                </MudButton>
+            </div>
+        </MudForm>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MudForm _form = default!;
+    private bool _success;
+    private FundDto? _fund;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _fund = await Http.GetFromJsonAsync<FundDto>($"api/fund/{Id}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Błąd podczas ładowania danych: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        await _form.Validate();
+        if (!_success) return;
+
+        var response = await Http.PutAsJsonAsync($"api/fund/{Id}", _fund);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Zmiany zostały zapisane.", Severity.Success);
+            NavigationManager.NavigateTo("/funds");
+        }
+        else
+        {
+            Snackbar.Add("Błąd podczas zapisu zmian.", Severity.Error);
+        }
+    }
+}
