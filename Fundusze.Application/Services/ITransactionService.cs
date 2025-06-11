@@ -10,6 +10,6 @@ namespace Fundusze.Application.Services
 {
     public interface ITransactionService
     {
-        Task<Transaction> AddTransactionAndUpdatePortfolioAsync(TransactionDto transactionDto);
+        Task<Transaction> AddTransactionAndUpdatePortfolioAsync(CreateTransactionDto transactionDto);
     }
 }

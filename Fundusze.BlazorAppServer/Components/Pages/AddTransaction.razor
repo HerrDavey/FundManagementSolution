@@ -19,7 +19,7 @@
         {
             <div class="mud-form-item mud-input-control mb-4">
                 <label class="mud-input-label mud-input-label-animated">Portfel</label>
-                <select @bind="_transaction.PortfolioId" class="form-select" required disabled="@_isPortfolioContext">
+                <select @bind="_transaction.PorfolioId" class="form-select" required>
                     <option value="0" disabled selected>Proszę wybrać...</option>
                     @foreach (var portfolio in _allPortfolios)
                     {
@@ -49,12 +49,12 @@
 
             <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data transakcji" Required="true" />
             <MudNumericField T="int" @bind-Value="_transaction.Quantity" Label="Ilość" Required="true" Min="1" />
-            <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" Required="true" Min="0.01m" />
+            <MudNumericField T="decimal" @bind-Value="_transaction.Price" Label="Cena" For="@(() => _transaction.Price)" Required="true" Min="0.01m" />
         }
 
         <div class="d-flex align-center justify-space-between mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="SubmitForm">
-                Zapisz
+            <MudButton ButtonType="ButtonType.Button" OnClick="SubmitForm" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)">
+                Dodaj
             </MudButton>
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="BackToList">
                 Powrót do listy
@@ -71,7 +71,7 @@
     public int? PortfolioId { get; set; }
     private bool _isPortfolioContext = false;
 
-    private TransactionDto _transaction = new() { Type = "Buy" };
+    private CreateTransactionDto _transaction = new() { Type = "Buy" };
     private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
 
     private List<InvestmentPortfolioDto>? _allPortfolios;
@@ -81,7 +81,7 @@
     {
         if (PortfolioId.HasValue)
         {
-            _transaction.PortfolioId = PortfolioId.Value;
+            _transaction.PorfolioId = PortfolioId.Value;
             _isPortfolioContext = true;
         }
 
@@ -111,7 +111,7 @@
     private async Task SubmitForm()
     {
         await _form.Validate();
-        if (_transaction.PortfolioId == 0 || _transaction.AssetId == 0) _success = false;
+        if (_transaction.PorfolioId == 0 || _transaction.AssetId == 0) _success = false;
 
         if (!_success)
         {
@@ -139,7 +139,7 @@
     {
         if (_isPortfolioContext)
         {
-            NavigationManager.NavigateTo($"/portfolios/{_transaction.PortfolioId}");
+            NavigationManager.NavigateTo($"/portfolios/{_transaction.PorfolioId}");
         }
         else
         {

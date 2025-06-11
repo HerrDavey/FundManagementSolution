@@ -60,7 +60,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task<IEnumerable<Transaction>> GetAllByPortfolioIdAsync(int portfolioId)
         {
             return await _context.Transactions
-                .Where(t => t.PortfolioId == portfolioId)
+                .Where(t => t.PorfolioId == portfolioId) // <-- ZMIANA
                 .Include(p => p.Portfolio)
                 .Include(a => a.Asset)
                 .OrderByDescending(t => t.TransactionDate)

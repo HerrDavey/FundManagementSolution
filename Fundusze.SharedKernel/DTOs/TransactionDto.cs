@@ -12,7 +12,7 @@ namespace Fundusze.Application.DTOs
         public int Id { get; set; }
 
         [Required]
-        public int PortfolioId { get; set; }
+        public int PorfolioId { get; set; }
 
         [Required]
         public int AssetId { get; set; }

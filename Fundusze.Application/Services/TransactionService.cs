@@ -20,64 +20,53 @@ namespace Fundusze.Application.Services
             _logger = logger;
         }
 
-        public async Task<Transaction> AddTransactionAndUpdatePortfolioAsync(TransactionDto transactionDto)
+        public async Task<Transaction> AddTransactionAndUpdatePortfolioAsync(CreateTransactionDto transactionDto)
         {
-            _logger.LogInformation("Rozpoczynanie operacji dodania transakcji i aktualizacji portfela dla PortfolioId: {PortfolioId}", transactionDto.PortfolioId);
+            _logger.LogInformation("Rozpoczynanie operacji dodania transakcji dla PortfolioId: {PortfolioId}", transactionDto.PorfolioId);
 
-            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(transactionDto.PortfolioId);
+            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(transactionDto.PorfolioId);
             if (portfolio == null)
             {
-                _logger.LogError("Nie znaleziono portfela o ID: {PortfolioId}", transactionDto.PortfolioId);
-                throw new KeyNotFoundException($"Portfolio with ID {transactionDto.PortfolioId} not found.");
+                throw new KeyNotFoundException($"Portfolio with ID {transactionDto.PorfolioId} not found.");
             }
 
-            if (!await _unitOfWork.Assets.ExistsAsync(transactionDto.AssetId))
+            var asset = await _unitOfWork.Assets.GetByIdAsync(transactionDto.AssetId);
+            if (asset == null)
             {
-                _logger.LogError("Nie znaleziono aktywa o ID: {AssetId}", transactionDto.AssetId);
                 throw new KeyNotFoundException($"Asset with ID {transactionDto.AssetId} not found.");
             }
 
-            var transactionValue = transactionDto.Quantity * transactionDto.Price;
-
-            switch (transactionDto.Type)
+            if (transactionDto.Type == "Sell")
             {
-                case "Buy":
-                    portfolio.NAV += transactionValue;
-                    _logger.LogInformation("Zwiększono NAV portfela o {TransactionValue}", transactionValue);
-                    break;
+                var existingTransactions = await _unitOfWork.Transactions.GetAllByPortfolioIdAsync(portfolio.Id);
+                var currentAssetHolding = existingTransactions
+                    .Where(t => t.AssetId == transactionDto.AssetId)
+                    .Sum(t => t.Type == Domain.TransactionType.Buy ? t.Quantity : -t.Quantity);
 
-                case "Sell":
-                    // NOWA LOGIKA BIZNESOWA - WERYFIKACJA STANU POSIADANIA
-                    var existingTransactions = await _unitOfWork.Transactions.GetAllByPortfolioIdAsync(portfolio.Id);
-                    var currentAssetHolding = existingTransactions
-                        .Where(t => t.AssetId == transactionDto.AssetId)
-                        .Sum(t => t.Type == Domain.TransactionType.Buy ? t.Quantity : -t.Quantity);
-
-                    if (currentAssetHolding < transactionDto.Quantity)
-                    {
-                        _logger.LogError("Próba sprzedaży {Quantity} jednostek aktywa {AssetId}, podczas gdy w portfelu jest tylko {CurrentHolding}",
-                            transactionDto.Quantity, transactionDto.AssetId, currentAssetHolding);
-                        throw new InvalidOperationException($"Próba sprzedaży większej liczby aktywów ({transactionDto.Quantity}) niż jest w portfelu ({currentAssetHolding}).");
-                    }
-
-                    portfolio.NAV -= transactionValue;
-                    _logger.LogInformation("Zmniejszono NAV portfela o {TransactionValue}", transactionValue);
-                    break;
-
-                default:
-                    _logger.LogWarning("Nierozpoznany typ transakcji: {TransactionType}", transactionDto.Type);
-                    break;
+                if (currentAssetHolding < transactionDto.Quantity)
+                {
+                    throw new InvalidOperationException($"Próba sprzedaży większej liczby aktywów ({transactionDto.Quantity}) niż jest w portfelu ({currentAssetHolding}).");
+                }
             }
+
+            var transactionValue = transactionDto.Quantity * transactionDto.Price;
+            portfolio.NAV += (transactionDto.Type == "Buy" ? transactionValue : -transactionValue);
 
             var newTransaction = TransactionMapper.FromDto(transactionDto);
 
+            newTransaction.Portfolio = portfolio;
+            newTransaction.Asset = asset;
+
             await _unitOfWork.Transactions.AddAsync(newTransaction);
+
+            // OSTATECZNA POPRAWKA: Jawnie informujemy UnitOfWork, że obiekt portfela
+            // został zmodyfikowany i jego stan musi zostać zaktualizowany w bazie.
             await _unitOfWork.Portfolios.UpdateAsync(portfolio);
 
+            // Ten krok zapisze teraz obie zmiany (nową transakcję i zaktualizowany portfel)
             await _unitOfWork.CompleteAsync();
 
             _logger.LogInformation("Pomyślnie dodano transakcję i zaktualizowano portfel.");
-
             return newTransaction;
         }
     }

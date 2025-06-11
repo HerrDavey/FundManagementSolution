@@ -17,7 +17,7 @@
     else
     {
         <MudForm @ref="_form" Model="_transaction" @bind-IsValid="_success">
-            <MudSelect T="int" @bind-Value="_transaction.PortfolioId" Label="Portfel" Required="true" ReadOnly="true">
+            <MudSelect T="int" @bind-Value="_transaction.PorfolioId" Label="Portfel" Required="true" ReadOnly="true">
                 @foreach (var portfolio in _allPortfolios)
                 {
                     <MudSelectItem T="int" Value="@portfolio.Id">@portfolio.FundName</MudSelectItem>

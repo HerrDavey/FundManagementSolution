@@ -10,25 +10,37 @@ namespace Fundusze.Application.Mappers
             return new TransactionDto
             {
                 Id = transaction.Id,
-                PortfolioId = transaction.PortfolioId,
+                PorfolioId = transaction.PorfolioId,
                 AssetId = transaction.AssetId,
                 TransactionDate = transaction.TransactionDate,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
                 Type = transaction.Type.ToString(),
-
-                // Uzupełniamy nowe pola - repozytorium i tak załącza te dane
                 AssetName = transaction.Asset?.Name,
-                PortfolioInfo = $"Portfel #{transaction.PortfolioId}"
+                PortfolioInfo = $"Portfel #{transaction.PorfolioId}"
             };
         }
 
+        // Ta metoda pozostaje bez zmian, używamy jej do aktualizacji
         public static Transaction FromDto(TransactionDto dto)
         {
             return new Transaction
             {
-                Id = dto.Id,
-                PortfolioId = dto.PortfolioId,
+                PorfolioId = dto.PorfolioId,
+                AssetId = dto.AssetId,
+                TransactionDate = dto.TransactionDate,
+                Quantity = dto.Quantity,
+                Price = dto.Price,
+                Type = Enum.TryParse(dto.Type, out TransactionType type) ? type : TransactionType.Buy
+            };
+        }
+
+        // NOWA METODA specjalnie dla tworzenia transakcji
+        public static Transaction FromDto(CreateTransactionDto dto)
+        {
+            return new Transaction
+            {
+                PorfolioId = dto.PorfolioId,
                 AssetId = dto.AssetId,
                 TransactionDate = dto.TransactionDate,
                 Quantity = dto.Quantity,

@@ -4,29 +4,36 @@ using Fundusze.Domain.Interfaces;
 using Fundusze.Infrastucture;
 using Serilog;
 using Fundusze.Application.Services;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Definicja polityki CORS
+// Definicja nazwy polityki CORS
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-// Dodanie serwisu CORS
+// KROK 1: DODAJEMY SERWIS CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
+                          // UPEWNIJ SIÊ, ¯E TEN PORT (7074) JEST ZGODNY Z ADRESEM TWOJEJ APLIKACJI KLIENCKIEJ
                           policy.WithOrigins("https://localhost:7074")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
 });
 
+
 builder.Services.AddDbContext<FundsDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.LogTo(Console.WriteLine, LogLevel.Information);
+    options.EnableSensitiveDataLogging();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -47,9 +54,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 
-app.UseRouting(); // Upewnij siê, ¿e ta linia jest przed UseCors i UseAuthorization
+app.UseRouting();
 
-// W³¹czenie middleware CORS
+// KROK 2: W£¥CZAMY CORS W ODPOWIEDNIEJ KOLEJNOŒCI
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();

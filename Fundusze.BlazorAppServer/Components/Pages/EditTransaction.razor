@@ -19,7 +19,7 @@
         <MudForm @ref="_form" Model="_transaction" @bind-IsValid="_success">
             <div class="mud-form-item mud-input-control mb-4">
                 <label class="mud-input-label mud-input-label-animated">Portfel</label>
-                <select @bind="_transaction.PortfolioId" class="form-select" required>
+                <select @bind="_transaction.PorfolioId" class="form-select" required>
                     @foreach (var portfolio in _allPortfolios)
                     {
                         <option value="@portfolio.Id">@portfolio.FundName</option>
@@ -110,7 +110,7 @@
     private async Task SubmitForm()
     {
         await _form.Validate();
-        if (_transaction is null || _transaction.PortfolioId == 0 || _transaction.AssetId == 0)
+        if (_transaction is null || _transaction.PorfolioId == 0 || _transaction.AssetId == 0)
         {
             _success = false;
         }

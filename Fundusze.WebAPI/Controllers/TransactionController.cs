@@ -2,8 +2,10 @@
 using Fundusze.Domain.Interfaces;
 using Fundusze.Application.DTOs;
 using Fundusze.Application.Mappers;
-using Fundusze.Application.Services; // <-- Nowy using
+using Fundusze.Application.Services;
 using Fundusze.Domain;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -12,9 +14,8 @@ namespace Fundusze.WebAPI.Controllers
     public class TransactionController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITransactionService _transactionService; // <-- Nowy serwis
+        private readonly ITransactionService _transactionService;
 
-        // Wstrzykujemy ITransactionService zamiast tylko IUnitOfWork
         public TransactionController(IUnitOfWork unitOfWork, ITransactionService transactionService)
         {
             _unitOfWork = unitOfWork;
@@ -37,18 +38,19 @@ namespace Fundusze.WebAPI.Controllers
             return Ok(TransactionMapper.ToDto(transaction));
         }
 
+        // POPRAWIONA METODA, KTÓRA UŻYWA CreateTransactionDto
         [HttpPost]
-        public async Task<ActionResult<TransactionDto>> CreateTransaction([FromBody] TransactionDto dto)
+        public async Task<ActionResult<TransactionDto>> CreateTransaction([FromBody] CreateTransactionDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-                // Zamiast logiki w kontrolerze, wywołujemy jedną metodę z serwisu
                 var createdTransaction = await _transactionService.AddTransactionAndUpdatePortfolioAsync(dto);
 
-                // Pobieramy pełne dane (z Assetem) dla odpowiedzi
-                var resultDto = TransactionMapper.ToDto(await _unitOfWork.Transactions.GetByIdAsync(createdTransaction.Id));
+                // Pobieramy pełne dane (z Assetem) dla odpowiedzi, aby zwrócić kompletny obiekt
+                var fullTransaction = await _unitOfWork.Transactions.GetByIdAsync(createdTransaction.Id);
+                var resultDto = TransactionMapper.ToDto(fullTransaction);
 
                 return CreatedAtAction(nameof(Get), new { id = createdTransaction.Id }, resultDto);
             }
@@ -56,13 +58,18 @@ namespace Fundusze.WebAPI.Controllers
             {
                 return NotFound(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
+                // Logowanie pełnego błędu jest kluczowe w development
+                Console.WriteLine(ex.ToString());
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        // Metody Update i Delete pozostają bez zmian (na razie)
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateTransaction(int id, [FromBody] TransactionDto dto)
         {
@@ -70,6 +77,9 @@ namespace Fundusze.WebAPI.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var transaction = TransactionMapper.FromDto(dto);
+            // Ustawiamy ID, bo FromDto go nie ustawia, a jest potrzebne do aktualizacji
+            transaction.Id = id;
+
             await _unitOfWork.Transactions.UpdateAsync(transaction);
             await _unitOfWork.CompleteAsync();
 
