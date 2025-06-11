@@ -17,7 +17,8 @@ namespace Fundusze.Application.Mappers
                 Price = transaction.Price,
                 Type = transaction.Type.ToString(),
                 AssetName = transaction.Asset?.Name,
-                PortfolioInfo = $"Portfel #{transaction.PorfolioId}"
+                // ZMIANA TUTAJ: Dodajemy nazwę funduszu
+                PortfolioInfo = $"{transaction.Portfolio?.Fund?.Name} (Portfel #{transaction.PorfolioId})"
             };
         }
 

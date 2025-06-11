@@ -11,5 +11,7 @@ namespace Fundusze.Application.Services
     public interface ITransactionService
     {
         Task<Transaction> AddTransactionAndUpdatePortfolioAsync(CreateTransactionDto transactionDto);
+        Task DeleteTransactionAndUpdatePortfolioAsync(int transactionId);
+        Task UpdateTransactionAndUpdatePortfolioAsync(TransactionDto transactionDto);
     }
 }

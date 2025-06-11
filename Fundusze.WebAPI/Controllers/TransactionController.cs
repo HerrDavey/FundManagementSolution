@@ -76,26 +76,40 @@ namespace Fundusze.WebAPI.Controllers
             if (id != dto.Id) return BadRequest("ID w URL nie zgadza się z ID w ciele żądania.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var transaction = TransactionMapper.FromDto(dto);
-            // Ustawiamy ID, bo FromDto go nie ustawia, a jest potrzebne do aktualizacji
-            transaction.Id = id;
-
-            await _unitOfWork.Transactions.UpdateAsync(transaction);
-            await _unitOfWork.CompleteAsync();
-
-            return NoContent();
+            try
+            {
+                await _transactionService.UpdateTransactionAndUpdatePortfolioAsync(dto);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTransaction(int id)
         {
-            var transaction = await _unitOfWork.Transactions.GetByIdAsync(id);
-            if (transaction == null) return NotFound();
-
-            await _unitOfWork.Transactions.DeleteAsync(transaction);
-            await _unitOfWork.CompleteAsync();
-
-            return NoContent();
+            try
+            {
+                await _transactionService.DeleteTransactionAndUpdatePortfolioAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
+
+
     }
 }

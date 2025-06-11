@@ -3,6 +3,7 @@ using Fundusze.Application.Mappers;
 using Fundusze.Domain;
 using Fundusze.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,19 +23,14 @@ namespace Fundusze.Application.Services
 
         public async Task<Transaction> AddTransactionAndUpdatePortfolioAsync(CreateTransactionDto transactionDto)
         {
-            _logger.LogInformation("Rozpoczynanie operacji dodania transakcji dla PortfolioId: {PortfolioId}", transactionDto.PorfolioId);
+            // ... istniejąca, poprawna logika bez zmian ...
+            _logger.LogInformation("Rozpoczynanie operacji dodania transakcji dla PorfolioId: {PorfolioId}", transactionDto.PorfolioId);
 
             var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(transactionDto.PorfolioId);
-            if (portfolio == null)
-            {
-                throw new KeyNotFoundException($"Portfolio with ID {transactionDto.PorfolioId} not found.");
-            }
+            if (portfolio == null) { throw new KeyNotFoundException($"Portfolio with ID {transactionDto.PorfolioId} not found."); }
 
             var asset = await _unitOfWork.Assets.GetByIdAsync(transactionDto.AssetId);
-            if (asset == null)
-            {
-                throw new KeyNotFoundException($"Asset with ID {transactionDto.AssetId} not found.");
-            }
+            if (asset == null) { throw new KeyNotFoundException($"Asset with ID {transactionDto.AssetId} not found."); }
 
             if (transactionDto.Type == "Sell")
             {
@@ -58,16 +54,63 @@ namespace Fundusze.Application.Services
             newTransaction.Asset = asset;
 
             await _unitOfWork.Transactions.AddAsync(newTransaction);
-
-            // OSTATECZNA POPRAWKA: Jawnie informujemy UnitOfWork, że obiekt portfela
-            // został zmodyfikowany i jego stan musi zostać zaktualizowany w bazie.
             await _unitOfWork.Portfolios.UpdateAsync(portfolio);
 
-            // Ten krok zapisze teraz obie zmiany (nową transakcję i zaktualizowany portfel)
             await _unitOfWork.CompleteAsync();
-
             _logger.LogInformation("Pomyślnie dodano transakcję i zaktualizowano portfel.");
             return newTransaction;
+        }
+
+        public async Task DeleteTransactionAndUpdatePortfolioAsync(int transactionId)
+        {
+            // ... istniejąca, poprawna logika bez zmian ...
+            _logger.LogInformation("Rozpoczynanie operacji usunięcia transakcji o ID: {TransactionId}", transactionId);
+
+            var transactionToDelete = await _unitOfWork.Transactions.GetByIdAsync(transactionId);
+            if (transactionToDelete == null) { throw new KeyNotFoundException($"Transaction with ID {transactionId} not found."); }
+
+            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(transactionToDelete.PorfolioId);
+            if (portfolio == null) { throw new KeyNotFoundException($"Associated portfolio with ID {transactionToDelete.PorfolioId} not found."); }
+
+            var transactionValue = transactionToDelete.Quantity * transactionToDelete.Price;
+            portfolio.NAV -= (transactionToDelete.Type == TransactionType.Buy ? transactionValue : -transactionValue);
+            _logger.LogInformation("Zaktualizowano NAV portfela o {TransactionValue}", -transactionValue);
+
+            await _unitOfWork.Transactions.DeleteAsync(transactionToDelete);
+            await _unitOfWork.Portfolios.UpdateAsync(portfolio);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Pomyślnie usunięto transakcję i zaktualizowano portfel.");
+        }
+
+        public async Task UpdateTransactionAndUpdatePortfolioAsync(TransactionDto transactionDto)
+        {
+            _logger.LogInformation("Rozpoczynanie operacji edycji transakcji o ID: {TransactionId}", transactionDto.Id);
+
+            var originalTransaction = await _unitOfWork.Transactions.GetByIdAsync(transactionDto.Id);
+            if (originalTransaction == null) { throw new KeyNotFoundException($"Transaction with ID {transactionDto.Id} not found to update."); }
+
+            var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(originalTransaction.PorfolioId);
+            if (portfolio == null) { throw new KeyNotFoundException($"Associated portfolio with ID {originalTransaction.PorfolioId} not found."); }
+
+            var originalValue = originalTransaction.Quantity * originalTransaction.Price;
+            portfolio.NAV -= (originalTransaction.Type == TransactionType.Buy ? originalValue : -originalValue);
+
+            var updatedValue = transactionDto.Quantity * transactionDto.Price;
+            portfolio.NAV += (Enum.Parse<TransactionType>(transactionDto.Type) == TransactionType.Buy ? updatedValue : -updatedValue);
+
+            originalTransaction.TransactionDate = transactionDto.TransactionDate;
+            originalTransaction.Quantity = transactionDto.Quantity;
+            originalTransaction.Price = transactionDto.Price;
+
+            // OSTATECZNA POPRAWKA: Dodajemy brakującą linię aktualizacji typu
+            originalTransaction.Type = Enum.Parse<TransactionType>(transactionDto.Type);
+
+            await _unitOfWork.Transactions.UpdateAsync(originalTransaction);
+            await _unitOfWork.Portfolios.UpdateAsync(portfolio);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Pomyślnie zedytowano transakcję i zaktualizowano portfel.");
         }
     }
 }
