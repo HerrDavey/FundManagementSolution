@@ -17,12 +17,11 @@ namespace Fundusze.Application.Mappers
                 Price = transaction.Price,
                 Type = transaction.Type.ToString(),
                 AssetName = transaction.Asset?.Name,
-                // ZMIANA TUTAJ: Dodajemy nazwę funduszu
                 PortfolioInfo = $"{transaction.Portfolio?.Fund?.Name} (Portfel #{transaction.PorfolioId})"
             };
         }
 
-        // Ta metoda pozostaje bez zmian, używamy jej do aktualizacji
+
         public static Transaction FromDto(TransactionDto dto)
         {
             return new Transaction
@@ -36,7 +35,6 @@ namespace Fundusze.Application.Mappers
             };
         }
 
-        // NOWA METODA specjalnie dla tworzenia transakcji
         public static Transaction FromDto(CreateTransactionDto dto)
         {
             return new Transaction

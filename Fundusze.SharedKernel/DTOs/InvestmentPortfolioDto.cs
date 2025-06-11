@@ -14,7 +14,6 @@ namespace Fundusze.Application.DTOs
         [Required]
         public int FundId { get; set; }
 
-        // Dodajemy nazwę funduszu dla wygody frontendu
         public string? FundName { get; set; }
 
         [Required]

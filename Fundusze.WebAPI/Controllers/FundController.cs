@@ -10,9 +10,9 @@ namespace Fundusze.WebAPI.Controllers
     public class FundController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<FundController> _logger; // Dodajemy logger
+        private readonly ILogger<FundController> _logger; 
 
-        // Wstrzykujemy ILogger przez konstruktor
+        // injection ILogger przez konstruktor
         public FundController(IUnitOfWork unitOfWork, ILogger<FundController> logger)
         {
             _unitOfWork = unitOfWork;

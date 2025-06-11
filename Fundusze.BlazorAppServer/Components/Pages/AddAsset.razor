@@ -15,7 +15,6 @@
         <MudTextField @bind-Value="_asset.Type" Label="Typ" For="@(() => _asset.Type)" Required="true" />
         <MudTextField @bind-Value="_asset.ISIN" Label="ISIN" For="@(() => _asset.ISIN)" Required="true" />
 
-        @* POPRAWKA TUTAJ: Dodajemy 'm' do wartości Min *@
         <MudNumericField T="decimal" @bind-Value="_asset.Price" Label="Cena" For="@(() => _asset.Price)" Required="true" Min="0.01m" />
 
         <div class="d-flex align-center justify-space-between mt-4">

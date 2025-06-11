@@ -5,7 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    // POPRAWKA TUTAJ: Ponownie w³¹czamy szczegó³owe b³êdy
     .AddInteractiveServerComponents(options => options.DetailedErrors = true);
 
 // Rejestracja MudBlazor

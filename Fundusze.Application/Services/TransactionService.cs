@@ -23,7 +23,7 @@ namespace Fundusze.Application.Services
 
         public async Task<Transaction> AddTransactionAndUpdatePortfolioAsync(CreateTransactionDto transactionDto)
         {
-            // ... istniejąca, poprawna logika bez zmian ...
+            
             _logger.LogInformation("Rozpoczynanie operacji dodania transakcji dla PorfolioId: {PorfolioId}", transactionDto.PorfolioId);
 
             var portfolio = await _unitOfWork.Portfolios.GetByIdAsync(transactionDto.PorfolioId);
@@ -63,7 +63,7 @@ namespace Fundusze.Application.Services
 
         public async Task DeleteTransactionAndUpdatePortfolioAsync(int transactionId)
         {
-            // ... istniejąca, poprawna logika bez zmian ...
+            
             _logger.LogInformation("Rozpoczynanie operacji usunięcia transakcji o ID: {TransactionId}", transactionId);
 
             var transactionToDelete = await _unitOfWork.Transactions.GetByIdAsync(transactionId);
@@ -103,7 +103,6 @@ namespace Fundusze.Application.Services
             originalTransaction.Quantity = transactionDto.Quantity;
             originalTransaction.Price = transactionDto.Price;
 
-            // OSTATECZNA POPRAWKA: Dodajemy brakującą linię aktualizacji typu
             originalTransaction.Type = Enum.Parse<TransactionType>(transactionDto.Type);
 
             await _unitOfWork.Transactions.UpdateAsync(originalTransaction);

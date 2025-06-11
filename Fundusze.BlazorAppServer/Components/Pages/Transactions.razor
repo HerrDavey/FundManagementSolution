@@ -36,7 +36,6 @@
                     <MudChip T="string" Color="@(context.Type == "Buy" ? Color.Success : Color.Error)">@context.Type</MudChip>
                 </MudTd>
                 <MudTd DataLabel="Aktywo">@context.AssetName</MudTd>
-                @* POPRAWKA TUTAJ: Używamy poprawnej nazwy właściwości *@
                 <MudTd DataLabel="Portfel">@context.PortfolioInfo</MudTd>
                 <MudTd DataLabel="Ilość">@context.Quantity</MudTd>
                 <MudTd DataLabel="Cena">@context.Price.ToString("C")</MudTd>

@@ -8,7 +8,6 @@ namespace Fundusze.Domain
     {
         public int Id { get; set; }
 
-        // PRZYWRACAMY LITERÓWKĘ, ABY PASOWAŁA DO BAZY DANYCH
         public int PorfolioId { get; set; }
         public InvestmentPortfolio? Portfolio { get; set; }
 

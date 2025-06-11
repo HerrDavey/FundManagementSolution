@@ -46,7 +46,7 @@ namespace Fundusze.Application.Services
                         CurrentValue = totalQuantity * asset.Price
                     };
                 })
-                .Where(a => a.TotalQuantity > 0) // Pokazuj tylko aktywa, które faktycznie posiadamy
+                .Where(a => a.TotalQuantity > 0) 
                 .ToList();
 
             var result = new PortfolioDetailsDto

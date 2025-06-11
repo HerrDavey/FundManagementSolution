@@ -24,14 +24,14 @@
                 <MudTh>Nazwa</MudTh>
                 <MudTh>Typ</MudTh>
                 <MudTh>ISIN</MudTh>
-                <MudTh>Domyślna cena</MudTh> @*<-- ZMIANA TUTAJ*@
+                <MudTh>Domyślna cena</MudTh> 
                 <MudTh>Akcje</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Nazwa">@context.Name</MudTd>
                 <MudTd DataLabel="Typ">@context.Type</MudTd>
                 <MudTd DataLabel="ISIN">@context.ISIN</MudTd>
-                <MudTd DataLabel="Domyślna cena">@context.Price.ToString("C")</MudTd> @*<-- ZMIANA TUTAJ*@
+                <MudTd DataLabel="Domyślna cena">@context.Price.ToString("C")</MudTd> 
                 <MudTd>
                     @if (_assetPendingDelete?.Id == context.Id)
                     {

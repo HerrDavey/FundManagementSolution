@@ -8,19 +8,18 @@ using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Definicja nazwy polityki CORS
+// Definicja CORS
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-// KROK 1: DODAJEMY SERWIS CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          // UPEWNIJ SIÊ, ¯E TEN PORT (7074) JEST ZGODNY Z ADRESEM TWOJEJ APLIKACJI KLIENCKIEJ
                           policy.WithOrigins("https://localhost:7074")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
@@ -56,7 +55,7 @@ app.UseSerilogRequestLogging();
 
 app.UseRouting();
 
-// KROK 2: W£¥CZAMY CORS W ODPOWIEDNIEJ KOLEJNOŒCI
+
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();

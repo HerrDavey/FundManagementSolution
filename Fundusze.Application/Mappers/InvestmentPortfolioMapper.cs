@@ -16,7 +16,6 @@ namespace Fundusze.Application.Mappers
             {
                 Id = portfolio.Id,
                 FundId = portfolio.FundId,
-                // Sprawdzamy czy Fund jest załadowany, aby uniknąć błędu
                 FundName = portfolio.Fund?.Name,
                 NAV = portfolio.NAV,
                 CreatedDate = portfolio.CreatedDate

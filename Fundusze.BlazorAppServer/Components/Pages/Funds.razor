@@ -4,7 +4,6 @@
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
-@* Nie potrzebujemy już DialogService, więc można go usunąć, ale zostawienie go nie szkodzi *@
 @inject IDialogService DialogService
 
 <PageTitle>Fundusze</PageTitle>
@@ -33,7 +32,6 @@
                 <MudTd DataLabel="Typ">@context.Type</MudTd>
                 <MudTd DataLabel="Zarządzający">@context.Managed</MudTd>
                 <MudTd>
-                    @* Nowa logika potwierdzenia wewnątrz wiersza *@
                     @if (_fundPendingDelete?.Id == context.Id)
                     {
                         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteFund(context.Id))">Potwierdź</MudButton>
@@ -58,7 +56,6 @@
     private List<FundDto>? _funds;
     private bool _loading = true;
 
-    // Nowa właściwość do przechowywania rekordu czekającego na usunięcie
     private FundDto? _fundPendingDelete;
 
     protected override async Task OnInitializedAsync()
@@ -99,7 +96,6 @@
         {
             Snackbar.Add("Wystąpił błąd podczas usuwania funduszu.", Severity.Error);
         }
-        // Resetujemy stan, aby przyciski wróciły do normy
         _fundPendingDelete = null;
         StateHasChanged();
     }

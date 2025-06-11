@@ -37,7 +37,6 @@ namespace Fundusze.WebAPI.Controllers
             return Ok(InvestmentPortfolioMapper.ToDto(portfolio));
         }
 
-        // NOWY ENDPOINT
         [HttpGet("{id}/details")]
         public async Task<ActionResult<PortfolioDetailsDto>> GetDetails(int id)
         {

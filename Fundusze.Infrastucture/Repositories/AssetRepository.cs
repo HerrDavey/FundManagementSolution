@@ -27,7 +27,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task DeleteAsync(Asset asset)
         {
             _context.Assets.Remove(asset);
-            await Task.CompletedTask; // Utrzymujemy asynchroniczność interfejsu
+            await Task.CompletedTask; 
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -48,7 +48,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task UpdateAsync(Asset asset)
         {
             _context.Assets.Update(asset);
-            await Task.CompletedTask; // Utrzymujemy asynchroniczność interfejsu
+            await Task.CompletedTask; 
         }
     }
 }

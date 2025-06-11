@@ -36,7 +36,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task<IEnumerable<Transaction>> GetAllAsync()
         {
             return await _context.Transactions
-                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) // <-- ZMIANA
+                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) 
                 .Include(a => a.Asset)
                 .ToListAsync();
         }
@@ -44,7 +44,7 @@ namespace Fundusze.Infrastucture.Repositories
         public async Task<Transaction?> GetByIdAsync(int id)
         {
             return await _context.Transactions
-                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) // <-- ZMIANA
+                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) 
                 .Include(a => a.Asset)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
@@ -59,7 +59,7 @@ namespace Fundusze.Infrastucture.Repositories
         {
             return await _context.Transactions
                 .Where(t => t.PorfolioId == portfolioId)
-                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) // <-- ZMIANA
+                .Include(p => p.Portfolio).ThenInclude(f => f.Fund) 
                 .Include(a => a.Asset)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToListAsync();

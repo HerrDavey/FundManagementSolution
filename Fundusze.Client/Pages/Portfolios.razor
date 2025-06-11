@@ -17,7 +17,6 @@
     }
     else
     {
-        @* ZMIANA TUTAJ: Dodajemy OnRowClick *@
         <MudTable Items="@_portfolios" Hover="true" Breakpoint="Breakpoint.Sm" OnRowClick="@((TableRowClickEventArgs<InvestmentPortfolioDto> args) => GoToDetails(args.Item.Id))" Style="cursor:pointer;">
             <HeaderContent>
                 <MudTh>Nazwa Funduszu</MudTh>
@@ -48,7 +47,6 @@
         }
     }
 
-    // Nowa metoda do nawigacji
     private void GoToDetails(int id)
     {
         NavigationManager.NavigateTo($"/portfolios/{id}");

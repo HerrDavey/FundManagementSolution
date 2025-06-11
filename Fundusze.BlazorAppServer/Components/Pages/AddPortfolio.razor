@@ -31,7 +31,6 @@
 
         <MudNumericField T="decimal" @bind-Value="_portfolio.NAV" Label="Wartość Aktywów Netto (NAV)" For="@(() => _portfolio.NAV)" Required="true" Min="0.00m" />
 
-        @* POPRAWKA: Wiązanie daty jako string *@
         <MudTextField T="string" @bind-Value="_dateString" InputType="InputType.Date" Label="Data utworzenia" Required="true" />
 
         <div class="d-flex align-center justify-space-between mt-4">

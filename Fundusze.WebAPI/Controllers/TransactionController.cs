@@ -38,7 +38,7 @@ namespace Fundusze.WebAPI.Controllers
             return Ok(TransactionMapper.ToDto(transaction));
         }
 
-        // POPRAWIONA METODA, KTÓRA UŻYWA CreateTransactionDto
+
         [HttpPost]
         public async Task<ActionResult<TransactionDto>> CreateTransaction([FromBody] CreateTransactionDto dto)
         {
@@ -48,7 +48,6 @@ namespace Fundusze.WebAPI.Controllers
             {
                 var createdTransaction = await _transactionService.AddTransactionAndUpdatePortfolioAsync(dto);
 
-                // Pobieramy pełne dane (z Assetem) dla odpowiedzi, aby zwrócić kompletny obiekt
                 var fullTransaction = await _unitOfWork.Transactions.GetByIdAsync(createdTransaction.Id);
                 var resultDto = TransactionMapper.ToDto(fullTransaction);
 
@@ -64,7 +63,7 @@ namespace Fundusze.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Logowanie pełnego błędu jest kluczowe w development
+
                 Console.WriteLine(ex.ToString());
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }

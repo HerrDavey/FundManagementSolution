@@ -42,7 +42,7 @@
     private MudForm _form = default!;
     private bool _success;
     private FundDto? _fund;
-    private string? _dateString; // Format wymagany przez input type="date"
+    private string? _dateString; 
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,7 +69,7 @@
 
         if (_fund is not null)
         {
-            _fund.CreatedDate = DateTime.Parse(_dateString); // Konwersja string -> DateTime
+            _fund.CreatedDate = DateTime.Parse(_dateString); 
         }
 
         var response = await Http.PutAsJsonAsync($"api/fund/{Id}", _fund);

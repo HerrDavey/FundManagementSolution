@@ -6,7 +6,7 @@ namespace Fundusze.Application.DTOs
     public class CreateTransactionDto
     {
         [Required]
-        public int PorfolioId { get; set; } // <-- ZMIANA
+        public int PorfolioId { get; set; } 
 
         [Required]
         public int AssetId { get; set; }
