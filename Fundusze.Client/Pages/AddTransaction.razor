@@ -1,4 +1,5 @@
 ﻿@page "/transactions/add"
+@using System.Web
 
 @inject HttpClient Http
 @inject ISnackbar Snackbar
@@ -10,24 +11,34 @@
     <MudForm @ref="_form" Model="_transaction" @bind-IsValid="@_success">
         <MudText Typo="Typo.h3" Class="mb-4">Nowa Transakcja</MudText>
 
-        @if (_allPortfolios is null || _allAssets is null)
+        @if (_allPortfolios is null || _allAssets is null || _allFunds is null)
         {
             <MudProgressCircular Indeterminate="true" />
         }
         else
         {
-            <MudSelect T="int" @bind-Value="_transaction.PorfolioId" Label="Portfel" Required="true" RequiredError="Wybór portfela jest wymagany!">
-                @foreach (var portfolio in _allPortfolios)
-                {
-                    <MudSelectItem T="int" Value="@portfolio.Id">@portfolio.FundName (NAV: @portfolio.NAV.ToString("C"))</MudSelectItem>
-                }
-            </MudSelect>
-            <MudSelect T="int" @bind-Value="_transaction.AssetId" Label="Aktywo" Required="true" RequiredError="Wybór aktywa jest wymagany!">
-                @foreach (var asset in _allAssets)
-                {
-                    <MudSelectItem T="int" Value="@asset.Id">@asset.Name</MudSelectItem>
-                }
-            </MudSelect>
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Portfel</label>
+                <select value="@_transaction.PorfolioId" @onchange="OnPortfolioSelectionChanged" class="form-select" required>
+                    <option value="0" disabled selected>Proszę wybrać...</option>
+                    @foreach (var portfolio in _allPortfolios)
+                    {
+                        <option value="@portfolio.Id">@portfolio.FundName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mud-form-item mud-input-control mb-4">
+                <label class="mud-input-label mud-input-label-animated">Aktywo</label>
+                <select @bind="_transaction.AssetId" class="form-select" required disabled="@(_transaction.PorfolioId == 0)">
+                    <option value="0" disabled selected>Proszę wybrać...</option>
+                    @foreach (var asset in _filteredAssets)
+                    {
+                        <option value="@asset.Id">@asset.Name</option>
+                    }
+                </select>
+            </div>
+
             <MudSelect T="string" @bind-Value="_transaction.Type" Label="Typ transakcji" Required="true">
                 <MudSelectItem T="string" Value="@("Buy")">Buy</MudSelectItem>
                 <MudSelectItem T="string" Value="@("Sell")">Sell</MudSelectItem>
@@ -52,17 +63,19 @@
 @code {
     private MudForm _form = default!;
     private bool _success;
-    
+
     private CreateTransactionDto _transaction = new() { Type = "Buy" };
     private string _dateString = DateTime.Now.ToString("yyyy-MM-dd");
     
     private List<InvestmentPortfolioDto>? _allPortfolios;
     private List<AssetDto>? _allAssets;
+    private List<FundDto>? _allFunds;
+    private List<AssetDto> _filteredAssets = new();
 
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(NavigationManager.Uri);
-        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var queryParams = HttpUtility.ParseQueryString(uri.Query);
         if (int.TryParse(queryParams["portfolioId"], out var portfolioId))
         {
             _transaction.PorfolioId = portfolioId;
@@ -70,7 +83,11 @@
 
         try
         {
-            await Task.WhenAll(LoadPortfolios(), LoadAssets());
+            await Task.WhenAll(LoadPortfolios(), LoadAssets(), LoadFunds());
+            if (_transaction.PorfolioId != 0)
+            {
+                FilterAssets(_transaction.PorfolioId);
+            }
         }
         catch (Exception ex)
         {
@@ -86,6 +103,53 @@
     private async Task LoadAssets()
     {
         _allAssets = await Http.GetFromJsonAsync<List<AssetDto>>("api/asset");
+    }
+
+    private async Task LoadFunds()
+    {
+        _allFunds = await Http.GetFromJsonAsync<List<FundDto>>("api/fund");
+    }
+
+    private void OnPortfolioSelectionChanged(ChangeEventArgs e)
+    {
+        var selectedIdStr = e.Value?.ToString();
+        if(int.TryParse(selectedIdStr, out var selectedId))
+        {
+            _transaction.PorfolioId = selectedId;
+            _transaction.AssetId = 0; 
+            FilterAssets(selectedId);
+        }
+    }
+    
+    private void FilterAssets(int portfolioId)
+    {
+        _filteredAssets.Clear();
+        var selectedPortfolio = _allPortfolios?.FirstOrDefault(p => p.Id == portfolioId);
+        var selectedFund = _allFunds?.FirstOrDefault(f => f.Id == selectedPortfolio?.FundId);
+
+        if (selectedFund != null && _allAssets != null)
+        {
+            switch (selectedFund.Type)
+            {
+                case "Akcyjny":
+                    _filteredAssets = _allAssets.Where(a => a.Type == "Akcja").ToList();
+                    break;
+                case "Obligacyjny":
+                    _filteredAssets = _allAssets.Where(a => a.Type == "Obligacja").ToList();
+                    break;
+                case "ETF":
+                     _filteredAssets = _allAssets.Where(a => a.Type == "ETF").ToList();
+                    break;
+                
+                case "Mieszany":
+                    _filteredAssets = _allAssets.ToList();
+                    break;
+
+                default:
+                    _filteredAssets = new List<AssetDto>();
+                    break;
+            }
+        }
     }
 
     private async Task SubmitForm()
