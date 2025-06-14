@@ -4,6 +4,7 @@ using Fundusze.Application.Services;
 using Fundusze.Domain.Entities;
 using Fundusze.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -84,7 +85,15 @@ namespace Fundusze.WebAPI.Controllers
             if (portfolio == null) return NotFound();
 
             await _unitOfWork.Portfolios.DeleteAsync(portfolio);
-            await _unitOfWork.CompleteAsync();
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (DbUpdateException)
+            {
+                return BadRequest("Nie można usunąć portfela, ponieważ istnieją powiązane z nim transakcje. Najpierw usuń transakcje.");
+            }
 
             return NoContent();
         }

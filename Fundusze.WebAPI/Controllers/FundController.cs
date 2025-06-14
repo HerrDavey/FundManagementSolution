@@ -2,6 +2,7 @@
 using Fundusze.Domain.Interfaces;
 using Fundusze.Application.DTOs;
 using Fundusze.Application.Mappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fundusze.WebAPI.Controllers
 {
@@ -81,17 +82,20 @@ namespace Fundusze.WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFund(int id)
         {
-            _logger.LogInformation("Próba usunięcia funduszu o ID: {FundId}", id);
             var fund = await _unitOfWork.Funds.GetByIdAsync(id);
-            if (fund == null)
-            {
-                _logger.LogWarning("Nie znaleziono funduszu do usunięcia o ID: {FundId}", id);
-                return NotFound();
-            }
+            if (fund == null) return NotFound();
 
             await _unitOfWork.Funds.DeleteAsync(fund);
-            await _unitOfWork.CompleteAsync();
-            _logger.LogInformation("Usunięto fundusz o ID: {FundId}", id);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (DbUpdateException) 
+            {
+                
+                return BadRequest("Nie można usunąć funduszu, ponieważ istnieją powiązane z nim aktywa. Najpierw upłynnij aktywa w portfelu!");
+            }
 
             return NoContent();
         }
