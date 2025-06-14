@@ -26,7 +26,7 @@
                 <MudTh>Data Utworzenia</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Nazwa Funduszu">@context.FundName</MudTd>
+                <MudTd DataLabel="Portfel">@($"{context.FundName} (Portfel #{context.Id})")</MudTd>
                 <MudTd DataLabel="NAV">@context.NAV.ToString("C")</MudTd>
                 <MudTd DataLabel="Data Utworzenia">@context.CreatedDate.ToShortDateString()</MudTd>
             </RowTemplate>

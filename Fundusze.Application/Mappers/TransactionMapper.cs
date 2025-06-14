@@ -17,10 +17,10 @@ namespace Fundusze.Application.Mappers
                 Price = transaction.Price,
                 Type = transaction.Type.ToString(),
                 AssetName = transaction.Asset?.Name,
+                // POPRAWKA TUTAJ: Używamy nowego, lepszego formatu
                 PortfolioInfo = $"{transaction.Portfolio?.Fund?.Name} (Portfel #{transaction.PorfolioId})"
             };
         }
-
 
         public static Transaction FromDto(TransactionDto dto)
         {
@@ -31,10 +31,10 @@ namespace Fundusze.Application.Mappers
                 TransactionDate = dto.TransactionDate,
                 Quantity = dto.Quantity,
                 Price = dto.Price,
-                Type = Enum.TryParse(dto.Type, out TransactionType type) ? type : TransactionType.Buy
+                Type = Enum.TryParse<TransactionType>(dto.Type, out var type) ? type : TransactionType.Buy
             };
         }
-
+        
         public static Transaction FromDto(CreateTransactionDto dto)
         {
             return new Transaction
@@ -44,7 +44,7 @@ namespace Fundusze.Application.Mappers
                 TransactionDate = dto.TransactionDate,
                 Quantity = dto.Quantity,
                 Price = dto.Price,
-                Type = Enum.TryParse(dto.Type, out TransactionType type) ? type : TransactionType.Buy
+                Type = Enum.TryParse<TransactionType>(dto.Type, out var type) ? type : TransactionType.Buy
             };
         }
     }

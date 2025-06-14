@@ -22,7 +22,7 @@
                 <select @bind="_transaction.PorfolioId" class="form-select" required>
                     @foreach (var portfolio in _allPortfolios)
                     {
-                        <option value="@portfolio.Id">@portfolio.FundName</option>
+                        <option value="@portfolio.Id">@($"{portfolio.FundName} (Portfel #{portfolio.Id})")</option>
                     }
                 </select>
             </div>

@@ -20,7 +20,7 @@
             <MudSelect T="int" @bind-Value="_transaction.PorfolioId" Label="Portfel" Required="true" ReadOnly="true">
                 @foreach (var portfolio in _allPortfolios)
                 {
-                    <MudSelectItem T="int" Value="@portfolio.Id">@portfolio.FundName</MudSelectItem>
+                    <MudSelectItem T="int" Value="@portfolio.Id">@($"{portfolio.FundName} (Portfel #{portfolio.Id})")</MudSelectItem>
                 }
             </MudSelect>
             <MudSelect T="int" @bind-Value="_transaction.AssetId" Label="Aktywo" Required="true" ReadOnly="true">
