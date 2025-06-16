@@ -1,14 +1,14 @@
 <h1>Aplikacja do Zarządzania Funduszami Inwestycyjnymi 💰</h1>
 
 <h2>Opis Projektu</h2>
-Aplikacja jest systemem do zarządzania portfelem funduszy inwestycyjnych, zbudowanym w oparciu o zasady <b>Czystej Architektury (Clean Architecture)</b>. Projekt składa się z backendowego <b>API</b> napisanego w technologii ASP.NET Core Web API oraz dwóch interfejsów użytkownika: <b>Panelu Administratora</b> (Blazor Server) oraz <b>Aplikacji Klienckiej</b> (Blazor WebAssembly). System umożliwia kompleksowe zarządzanie funduszami, aktywami, portfelami oraz transakcjami, automatycznie przeliczając kluczowe wskaźniki, takie jak Wartość Aktywów Netto (NAV).
+Aplikacja jest systemem do zarządzania portfelem funduszy inwestycyjnych, zbudowanym w oparciu o zasady <b>Czystej Architektury (Clean Architecture)</b>. Projekt składa się z backendowego <b>API</b> napisanego w technologii ASP.NET Core Web API oraz dwóch interfejsów użytkownika: <b>Panelu Administratora</b> (Blazor Web Application) oraz <b>Aplikacji Klienckiej</b> (Blazor WebAssembly). System umożliwia kompleksowe zarządzanie funduszami, aktywami, portfelami oraz transakcjami, automatycznie przeliczając kluczowe wskaźniki, takie jak Wartość Aktywów Netto (NAV).
 
 <h2>Główne Funkcjonalności</h2>
 
 - <b>Czysta Architektura</b>: Jasny podział na warstwy (Domena, Aplikacja, Infrastruktura, Prezentacja) w celu zapewnienia elastyczności, testowalności i łatwości w utrzymaniu kodu.
 
 - <b>Dwa Interfejsy Użytkownika</b>:
-    - <b>Panel Administratora (Blazor Server)</b>: Posiada pełne uprawnienia do tworzenia, edycji i usuwania wszystkich danych w systemie (CRUD).
+    - <b>Panel Administratora (Blazor Web Application)</b>: Posiada pełne uprawnienia do tworzenia, edycji i usuwania wszystkich danych w systemie (CRUD).
     - <b>Aplikacja Kliencka (Blazor WebAssembly)</b>: Skoncentrowana na przeglądaniu danych i dokonywaniu transakcji z perspektywy klienta/inwestora.
 
 - <b>Logika Biznesowa</b>: Aplikacja zawiera zaawansowaną logikę biznesową, m.in.:
@@ -41,7 +41,7 @@ Aplikacja została zbudowana zgodnie z zasadami Clean Architecture, co zapewnia 
 
 - <b>C# 12 / .NET 8</b>
 - <b>ASP.NET Core Web API</b>
-- <b>Blazor Server</b>
+- <b>Blazor Web Application </b>
 - <b>Blazor WebAssembly</b>
 - <b>Entity Framework Core 8</b>
 - <b>SQLite</b>
