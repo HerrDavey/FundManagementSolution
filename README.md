@@ -86,4 +86,5 @@ Pełna, interaktywna dokumentacja API jest dostępna poprzez Swaggera po uruchom
 - <b>Clean Architecture</b> (wzorzec architektoniczny)
 
 <h2>7. Środowisko</h2>
+
 - <b>Visual Studio 2022</b>
