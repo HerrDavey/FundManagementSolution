@@ -3,6 +3,23 @@
 <h2>Opis Projektu</h2>
 Aplikacja jest systemem do zarządzania portfelem funduszy inwestycyjnych, zbudowanym w oparciu o zasady <b>Czystej Architektury (Clean Architecture)</b>. Projekt składa się z backendowego <b>API</b> napisanego w technologii ASP.NET Core Web API oraz dwóch interfejsów użytkownika: <b>Panelu Administratora</b> (Blazor Web Application) oraz <b>Aplikacji Klienckiej</b> (Blazor WebAssembly). System umożliwia kompleksowe zarządzanie funduszami, aktywami, portfelami oraz transakcjami, automatycznie przeliczając kluczowe wskaźniki, takie jak Wartość Aktywów Netto (NAV).
 
+<h2>Instalacja i Uruchomienie</h2>
+
+### Wymagania
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/)
+
+### Kroki
+1. Sklonuj repozytorium na swój dysk lokalny.
+2. Otwórz plik solucji (`.sln`) w Visual Studio 2022.
+3. **Konfiguracja CORS**: W projekcie `Fundusze.WebAPI`, w pliku `Program.cs`, znajdź linię `policy.WithOrigins("...")` i upewnij się, że port jest zgodny z tym, na którym uruchamia się projekt `Fundusze.Client` (można to sprawdzić w `Fundusze.Client/Properties/launchSettings.json`).
+4. **Konfiguracja Projektów Startowych**:
+    - Kliknij prawym przyciskiem myszy na solucję w `Solution Explorer`.
+    - Wybierz `Configure Startup Projects...`.
+    - Zaznacz `Multiple startup projects`.
+    - Dla projektów `Fundusze.WebAPI`, `Fundusze.BlazorAppServer` oraz `Fundusze.Client` ustaw `Action` na `Start`.
+5. Naciśnij klawisz `F5` lub przycisk `Start`, aby uruchomić wszystkie trzy aplikacje jednocześnie. Aplikacja utworzy bazę danych `fundusze.db` przy pierwszym uruchomieniu.
+
 <h2>Główne Funkcjonalności</h2>
 
 - <b>Czysta Architektura</b>: Jasny podział na warstwy (Domena, Aplikacja, Infrastruktura, Prezentacja) w celu zapewnienia elastyczności, testowalności i łatwości w utrzymaniu kodu.
@@ -36,6 +53,14 @@ Aplikacja została zbudowana zgodnie z zasadami Clean Architecture, co zapewnia 
 4. Serwis wykorzystuje encje z Domeny do przetworzenia logiki (np. obliczenia NAV) i wywołuje metody na interfejsach repozytoriów.
 5. `TransactionRepository` (warstwa Infrastruktury) wykonuje operacje na bazie danych.
 6. Odpowiedź wraca tą samą drogą do użytkownika.
+
+<h2>Przegląd Kluczowych Endpointów API</h2>
+Pełna, interaktywna dokumentacja API jest dostępna poprzez Swaggera po uruchomieniu projektu WebAPI. Poniżej znajdują się najważniejsze endpointy:
+
+- `POST /api/transaction` - Tworzy nową transakcję i automatycznie przelicza wartość (NAV) powiązanego portfela.
+- `DELETE /api/transaction/{id}` - Usuwa transakcję i cofa jej wpływ na NAV portfela.
+- `GET /api/portfolio/{id}/details` - Zwraca szczegółowe, zagregowane dane dla konkretnego portfela, włączając w to listę posiadanych aktywów i pełną historię transakcji.
+- `GET /api/fund`, `POST /api/fund` itd. - Pełne operacje CRUD do zarządzania funduszami.
 
 <h2>Języki i Technologie</h2>
 
